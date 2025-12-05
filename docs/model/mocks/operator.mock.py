@@ -1,7 +1,8 @@
+#processors
 def op1():
 def WSCAN()
 def PATTERN()
-  PATH FILTER SELECT UNION INTER
+  PATH FILTER SELECT UNION INTERSECT
   
 
 class operator:

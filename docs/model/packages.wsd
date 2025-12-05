@@ -1,0 +1,81 @@
+@startuml
+allowmixing
+top to bottom direction
+skinparam horizontalSpacing 80
+skinparam verticalSpacing 60
+skinparam defaultTextAlignment center
+
+package "core"
+{
+    package "models" {
+        package "algebra" {
+            class Operator{
+                +function: Function
+            }
+        }
+        package "automaton" {
+            class Automaton{
+                +states: Dict_State_Label_t_State
+            }
+            class State
+        }
+        package "queries" {
+            class IndexNode{
+                +name: String
+                +state: State
+            }
+            class SpanningTree
+        }
+        package "streamingGraph" {
+            class Edge{
+                +source: String
+                +target: String
+                +label: Label
+            }
+            class Label
+            class SnapshotGraph{
+                +time: Time
+                +edges: List_Edge
+            }
+            class StreamingGraphTuple{
+                +source: String
+                +target: String
+                +label: Label
+                +startTime: Time
+                +expiricy: Time
+                +content: List_Edge
+            }
+            class Time
+            
+        }
+    }
+    package "processors" {
+        package "operators" {
+            class Filer 
+            class Intersection 
+            class Join
+            class Path 
+            class Pattern 
+            class Union 
+            class Wscan
+        }
+        class Label
+        class Snapshot
+        class SPath
+    }
+}
+
+package "processing"
+{
+    package "parse"
+    package "query" {
+        class QueryProcessor
+    }
+}
+
+
+processing --> processors : uses
+processing --> models : uses
+
+
+@enduml
