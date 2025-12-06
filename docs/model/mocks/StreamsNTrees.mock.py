@@ -2,6 +2,7 @@ Alias Label: str
 Alias State: str
 Alias Time: int
 Alias SpanningTree: dict<IndexNode, list<IndexNode>>
+Alias IndexPath: dist<IndexNode, SpanningTree>
 
 # processors
 def label(...polymorphism) -> Label # for each type
@@ -40,14 +41,14 @@ class IndexNode:
   name: str
   state: State
 
+// s1 -a-> s2 -b-> s2   [s2]     ab*       {"s1, a": ["s2"], "s2, b": ["s2"]}    F = ["s2"]
 
 class Automaton: 
   states : dict<[State,Label], State> 
+  finalStates : set<State>
   def isFinal(State)->bool
   def transition(State, Label)->State 
 
-
-IndexPath: dist<IndexNode, SpanningTree>
 
 
 class QueryProcessor # processes queries from input stream, called each push

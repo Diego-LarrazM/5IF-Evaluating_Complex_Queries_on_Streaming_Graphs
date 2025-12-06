@@ -1,0 +1,16 @@
+# Ignore Java class files
+**/*.class
+
+# Ignore built JARs
+**/*.jar
+
+# Ignore executables
+**/*.exe
+**/*.dll
+**/*.so
+
+# Ignore IDE folders
+**/*.iml
+**/.idea/
+.vscode/
+**/*.lst

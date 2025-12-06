@@ -10,6 +10,14 @@ class operator:
   def __call__():
     self.function(x)
 
+Operator op = new Operator(WSCAN);
+op.compose(PATH):
+   this.function = this.function.andThen(PATH); // PATH(WSCAN)
+
+op(x) // PATH(WSCAN(x))
+
+f = lambda x: x+1
+f = lambda y: f(y)*2  # f(x) = (x+1)*2
 
 import java.util.function.Function;
  
