@@ -16,12 +16,12 @@ class Operator implements Function<StreamingGraph, StreamingGraph> {
 
     // In-place (before o operator)
     public void composeAfter(Operator before) {
-        this.func = s -> this.func.apply(before.apply(s));
+        this.func = this.func.compose(before);
     }
 
     // In-place (operator o after)
     public void composeBefore(Operator after) {
-        this.func = s -> after.apply(this.func.apply(s));
+        this.func = this.func.andThen(after);
     }
 }
 

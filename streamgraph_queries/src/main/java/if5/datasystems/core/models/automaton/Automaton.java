@@ -1,15 +1,17 @@
 package if5.datasystems.core.models.automaton;
 
-import if5.datasystems.core.models.streamingGraph.Label;
-
 import lombok.Data;
 import java.util.Map;
 import java.util.Set;
 
+import if5.datasystems.core.models.aliases.Label;
+import if5.datasystems.core.models.aliases.Pair;
+import if5.datasystems.core.models.aliases.State;
+
 @Data
 public class Automaton {
 
-    private Map<Map.Entry<State, Label>, State> states;
+    private Map<Pair<State, Label>, State> states;   
     private Set<State> finalStates;
 
     public boolean isFinal(State state) {
@@ -17,6 +19,6 @@ public class Automaton {
     }
 
     public State transition(State state, Label label) {
-        return this.states.get(Map.entry(state, label));
+        return this.states.get(new Pair<>(state, label));
     }
 } 

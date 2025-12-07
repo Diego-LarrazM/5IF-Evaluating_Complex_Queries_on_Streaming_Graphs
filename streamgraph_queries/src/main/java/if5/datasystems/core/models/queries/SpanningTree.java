@@ -2,6 +2,9 @@ package if5.datasystems.core.models.queries;
 
 import lombok.Data;
 import java.util.Map;
+
+import if5.datasystems.core.models.aliases.State;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -9,7 +12,7 @@ import java.util.ArrayList;
 @Data
 public class SpanningTree {
     
-    private Map<IndexNode, List<IndexNode>> tree;
+    private Map<IndexNode, List<IndexNode>> tree; // à adapter pour pouvoir obtenir les nodes
 
     public SpanningTree() {
         this.tree = new HashMap<>();
@@ -36,4 +39,6 @@ public class SpanningTree {
     public List<IndexNode> getChildren(IndexNode node) {
         return this.tree.get(node);
     }
+
+    public boolean contains(String name, State state) {return this.tree.containsKey(new IndexNode(name,state));}
 }   

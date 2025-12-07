@@ -2,24 +2,25 @@ package if5.datasystems.core.models.streamingGraph;
 
 import java.util.ArrayList;
 
+import if5.datasystems.core.models.aliases.Label;
 import lombok.Data;
 
 @Data public class LabeledGraphStream {
   private Label label;
-  private ArrayList<StreamingGraphTuple> edges;
+  private ArrayList<StreamingGraphTuple> tuples;
 
-  public LabeledGraphStream(Label label, ArrayList<StreamingGraphTuple> edges) {
+  public LabeledGraphStream(Label label, ArrayList<StreamingGraphTuple> tuples) {
     this.label = label;
-    this.edges = edges;
+    this.tuples = tuples;
   }
 
   public LabeledGraphStream(Label label) {
     this.label = label;
-    this.edges = new ArrayList<StreamingGraphTuple>();
+    this.tuples = new ArrayList<StreamingGraphTuple>();
   }
 
   public void add(StreamingGraphTuple tuple) {
-    if (tuple == null || tuple.getLabel() != this.label) {return;}
-    this.edges.add(tuple);
+    if (tuple == null || tuple.getRepr().getLabel() != this.label) {return;}
+    this.tuples.add(tuple);
   }
 }

@@ -1,6 +1,8 @@
 package if5.datasystems.core.models.queries;
 
+import if5.datasystems.core.models.aliases.Pair;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import lombok.Data;
@@ -9,17 +11,17 @@ import lombok.Data;
   private Map<IndexNode, SpanningTree> indexPath;
 
   public IndexPath() {
-    this.indexPath = new HashMap<IndexNode, SpanningTree>();
+    this.indexPath = new HashMap<>();
   }
 
   public void createTree(IndexNode rootNode) {
     this.indexPath.put(rootNode, new SpanningTree(rootNode));
   }
 
-  public void addTo(IndexNode rootNode, Map.Entry<IndexNode, IndexNode> toAddEntry) {
+  public void addEdgeTo(IndexNode rootNode, Pair<IndexNode, IndexNode> toAddEntry) {
     SpanningTree tree = this.indexPath.get(rootNode);
     if(tree != null && toAddEntry != null) {
-      tree.addNode(toAddEntry.getKey(), toAddEntry.getValue());
+      tree.addNode(toAddEntry.first(), toAddEntry.second());
     }
   }
   
