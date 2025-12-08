@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.sql.Time;
 
 import if5.datasystems.core.models.aliases.Label;
+import if5.datasystems.core.models.aliases.Pair;
 import if5.datasystems.core.models.aliases.State;
 import if5.datasystems.core.models.aliases.Triple;
 import if5.datasystems.core.models.automaton.Automaton;
@@ -20,12 +21,15 @@ import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 
 public class SPath implements Function<Triple<StreamingGraph, RegularQuery, Label>, StreamingGraph> { 
 
-  private Set<StreamingGraphTuple> Expand(SpanningTree T, IndexNode parent, IndexNode child, Edge edge, Automaton automaton, StreamingGraph S) {
+  private Set<StreamingGraphTuple> Expand(SpanningTree T, Pair<String, State> parentKey, Pair<String, State> childKey, Edge edge, Automaton automaton, StreamingGraph S) {
     HashSet<StreamingGraphTuple> results = new HashSet<>();
-    child.setParent(parent);
-    T.addNode(parent, child);
-    child.setStartTime(TimeOps.maxTime(edge.getStartTime(),parent.getStartTime()));
+    IndexNode child = new IndexNode(childKey.first(),childKey.second());
+    IndexNode parent = T.getNode(parentKey);
+    child.setParent(parentKey);
+    T.addNode(child);
+    child.setStartTime(TimeOps.maxTime(edge.getStartTime(), parent.getStartTime()));
     child.setExpiricy(TimeOps.minTime(edge.getExpiricy(), parent.getExpiricy()));
+    
     if (automaton.isFinal(child.getState())) {
       StreamingGraphTuple pathResult = new StreamingGraphTuple(); // to be implemented with PATH operator PATH(T.root, child)
       results.add(pathResult);
@@ -36,21 +40,23 @@ public class SPath implements Function<Triple<StreamingGraph, RegularQuery, Labe
         if (q == null) continue;
         String w = e.getTarget();
         if(T.contains(w,q)){
-          IndexNode possibleNewChild = T.getNode(w,q); //  To Implement, get Index Node of name w and state q
+          IndexNode possibleNewChild = T.getNode(w,q);
           if (possibleNewChild.getExpiricy().before(TimeOps.minTime(child.getExpiricy(), e.getExpiricy()))){
-            results.addAll(Propagate(T, child, possibleNewChild, edge, automaton, S));
+            results.addAll(Propagate(T, childKey, new Pair<>(w,q), edge, automaton, S));
           }
         }
-        else{results.addAll(Expand(T, child, new IndexNode(w,q), edge, automaton, S));}
+        else{results.addAll(Expand(T, childKey, new Pair<>(w,q), edge, automaton, S));}
         
     }
 
     return results;
   }
 
-  private Set<StreamingGraphTuple> Propagate(SpanningTree T, IndexNode parent, IndexNode child, Edge edge, Automaton automaton, StreamingGraph S) {
+  private Set<StreamingGraphTuple> Propagate(SpanningTree T, Pair<String, State> parentKey, Pair<String, State> childKey, Edge edge, Automaton automaton, StreamingGraph S) {
     HashSet<StreamingGraphTuple> results = new HashSet<>();
-    child.setParent(parent);
+    IndexNode child = T.getNode(childKey); // We obtain the current child in Tree to get its current validity interval [ts,exp]
+    IndexNode parent = T.getNode(parentKey);
+    child.setParent(parentKey);
     child.setStartTime(TimeOps.minTime(child.getStartTime(),TimeOps.maxTime(edge.getStartTime(), parent.getStartTime())));
     child.setExpiricy(TimeOps.maxTime(child.getExpiricy(), TimeOps.minTime(edge.getExpiricy(), parent.getExpiricy())));
     
@@ -65,7 +71,7 @@ public class SPath implements Function<Triple<StreamingGraph, RegularQuery, Labe
         String w = e.getTarget();
         IndexNode possibleNewChild = T.getNode(w,q); //  To Implement, get Index Node of name w and state q
         if (possibleNewChild.getExpiricy().before(TimeOps.minTime(child.getExpiricy(), e.getExpiricy()))){
-          results.addAll(Propagate(T, child, possibleNewChild, edge, automaton, S));
+          results.addAll(Propagate(T, childKey, new Pair<>(w,q), edge, automaton, S));
         }
     }
     
