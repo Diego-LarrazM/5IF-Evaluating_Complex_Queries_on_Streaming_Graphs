@@ -1,6 +1,7 @@
 package if5.datasystems.core.models.streamingGraph;
 
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Data;
@@ -8,6 +9,18 @@ import lombok.Data;
 @Data public class StreamingGraphTuple {
   private Edge repr;
   private List<Edge> content;
+
+  public StreamingGraphTuple(){
+    this.content = new ArrayList<>();
+  }
+
+  public void add(Edge e){
+    if(!this.content.isEmpty()){
+      
+    }
+
+    content.add(e);
+  }
 
   @Override
   public boolean equals(Object obj){ // Value Equivalence

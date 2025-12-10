@@ -13,6 +13,19 @@ import lombok.Data;
   private Time startTime;
   private Time expiricy;
 
+  public Edge ()
+  {
+      
+  }
+  
+  public Edge(String source, String target, Label label, Time startTime, Time expiricy){
+    this.source=source;
+    this.target=target;
+    this.label=label;
+    this.startTime=startTime;
+    this.expiricy=expiricy;
+  }
+
   @Override
   public boolean equals(Object obj){ // Value Equivalence
     if (this == obj) return true;
