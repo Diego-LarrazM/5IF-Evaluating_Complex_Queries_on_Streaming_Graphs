@@ -15,14 +15,13 @@ import if5.datasystems.core.models.aliases.Triple;
 import if5.datasystems.core.models.automaton.Automaton;
 import if5.datasystems.core.models.queries.IndexNode;
 import if5.datasystems.core.models.queries.IndexPath;
-import if5.datasystems.core.models.queries.RegularQuery;
 import if5.datasystems.core.models.queries.SpanningTree;
 import if5.datasystems.core.models.streamingGraph.Edge;
 import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 import if5.datasystems.core.processors.AlgebraFunctions.*;
 
-public class SPath implements Function<Triple<StreamingGraph, RegularQuery, Label>, StreamingGraph> { 
+public class SPath implements Function<Triple<StreamingGraph, String, Label>, StreamingGraph> { 
 
   private Set<StreamingGraphTuple> Expand(SpanningTree T, Pair<String, State> parentKey, Pair<String, State> childKey, Edge edge, Automaton automaton, StreamingGraph S, Label outputLabel) {
     HashSet<StreamingGraphTuple> results = new HashSet<>();
@@ -86,9 +85,9 @@ public class SPath implements Function<Triple<StreamingGraph, RegularQuery, Labe
     return results;
   }
 
-  private StreamingGraph spath(StreamingGraph S, RegularQuery RQ, Label outputLabel) {
+  private StreamingGraph spath(StreamingGraph S, String pathLabel, Label outputLabel) {
     HashSet<StreamingGraphTuple> results = new HashSet<>();
-    Automaton automaton = new Automaton(RQ); // TO implement automaton definition from regular query
+    Automaton automaton = new Automaton(pathLabel); // TO implement automaton definition from regular query
     IndexPath deltaPath = new IndexPath();
 
     for (StreamingGraphTuple tuple : S.getTuples()) {
@@ -125,7 +124,7 @@ public class SPath implements Function<Triple<StreamingGraph, RegularQuery, Labe
           }
         }
 
-        ArrayList<SpanningTree> ExpandedTrees = deltaPath.expandableTrees(parentKey, ts); // TO implement returns all trees that contain parentkey
+        ArrayList<SpanningTree> ExpandedTrees = deltaPath.expandableTrees(parentKey, ts);
         for (SpanningTree Tx : ExpandedTrees) {
           if (!Tx.contains(v, t)) {
             results.addAll(Expand(Tx, parentKey, childKey, edge, automaton, S, outputLabel));
@@ -141,11 +140,11 @@ public class SPath implements Function<Triple<StreamingGraph, RegularQuery, Labe
         }
       }
     }
-    return new StreamingGraph(results); ;
+    return new StreamingGraph(results);
   }
 
   @Override
-  public StreamingGraph apply(Triple<StreamingGraph, RegularQuery, Label> input){
+  public StreamingGraph apply(Triple<StreamingGraph, String, Label> input){
     return spath(input.first(), input.second(), input.third());
   }
 
