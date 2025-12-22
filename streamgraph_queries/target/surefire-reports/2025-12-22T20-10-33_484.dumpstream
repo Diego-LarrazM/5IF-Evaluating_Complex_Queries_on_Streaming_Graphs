@@ -1,0 +1,5 @@
+# Created at 2025-12-22T20:10:34.161
+Boot Manifest-JAR contains absolute paths in classpath 'E:\Data\Study\Data Engineering\5IF-Evaluating_Complex_Queries_on_Streaming_Graphs\streamgraph_queries\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+
