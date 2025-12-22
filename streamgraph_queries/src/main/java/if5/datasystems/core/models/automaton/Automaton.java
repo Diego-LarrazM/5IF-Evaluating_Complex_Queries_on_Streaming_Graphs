@@ -23,6 +23,11 @@ public class Automaton {
         this.initialState = new State("s0");
         this.states = new HashSet<>();
         this.states.add(this.initialState);
+        if(uniqueLabel == null || uniqueLabel.isEmpty()){
+            this.transitions = transitions;
+            this.finalStates = Fstates;
+            return;
+        }
 
         int labelLength = uniqueLabel.length(); 
         char LastChar = uniqueLabel.charAt(labelLength-1);
