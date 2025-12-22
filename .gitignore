@@ -16,3 +16,4 @@
 **/*.lst
 
 # Ignore log files
+**/surefire-reports/*
