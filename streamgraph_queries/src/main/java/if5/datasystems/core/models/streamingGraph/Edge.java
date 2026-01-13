@@ -1,24 +1,32 @@
 package if5.datasystems.core.models.streamingGraph;
 
-import java.sql.Time;
+import java.io.Serializable;
+import java.util.Date;
 
 import if5.datasystems.core.models.aliases.Label;
 import lombok.Data;
 
-@Data public class Edge {
+@Data public class Edge implements Serializable {
 
-  private String source;
-  private String target;
-  private Label label;
-  private Time startTime;
-  private Time expiricy;
+  public String source;
+  public String target;
+  public Label label;
+  public long startTime;
+  public long expiricy;
 
   public Edge ()
   {
       
   }
+
+  public Edge(String source, String target, Label label, long startTime){
+    this.source=source;
+    this.target=target;
+    this.label=label;
+    this.startTime=startTime;
+  }
   
-  public Edge(String source, String target, Label label, Time startTime, Time expiricy){
+  public Edge(String source, String target, Label label, long startTime, long expiricy){
     this.source=source;
     this.target=target;
     this.label=label;
