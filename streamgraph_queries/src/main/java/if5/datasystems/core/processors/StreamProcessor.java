@@ -2,7 +2,6 @@ package if5.datasystems.core.processors;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 
@@ -29,7 +28,7 @@ public class StreamProcessor {
     StreamExecutionEnvironment env;
     DataStream<Edge> streamGraph;
 
-    class GraphExpirer extends KeyedProcessFunction<Integer, Edge, String> {
+    class GraphExpirer extends KeyedProcessFunction<Integer, EdgeEventFormat, String> {
         private final long WINDOW_SIZE;
         private ListState<Edge> graph;
 
@@ -38,8 +37,7 @@ public class StreamProcessor {
         }
 
         @Override
-        public void open(Configuration config){
-            // Initialization logic here
+        public void open(Configuration config) throws Exception {
             graph = getRuntimeContext().getListState(
                 new ListStateDescriptor<>("graph", Edge.class)
             );
@@ -47,13 +45,14 @@ public class StreamProcessor {
 
         @Override
         public void processElement(
-            Edge edge, 
+            EdgeEventFormat edge_event, 
             Context context,
             Collector<String> out) throws Exception {
             // Processing of each event (Edge + timestamp + Watermark)
 
             // Update State
-            edge.setExpiricy(Instant.ofEpochMilli(edge.getStartTime_ms() + WINDOW_SIZE));
+            Edge edge = edge_event.edge;
+            edge.setExpiricy(Instant.ofEpochMilli(edge_event.timestamp + WINDOW_SIZE));
             graph.add(edge);
             
             // Downstream to output for printing
@@ -112,19 +111,15 @@ public class StreamProcessor {
                                 // ,
                                 // "CSV Test Source"
                             // );
-        WatermarkStrategy ws = WatermarkStrategy //Sets up time for expiration given edge start times and lateness available
-            .<MyEvent>forBoundedOutOfOrderness(Duration.ofMillis(watermarkDelta))
-            .withTimestampAssigner((evnt, ts) -> evnt.f2);
         socketStream
         .filter(s->(s != "" && s != null))
-        .map(MyEvent::new)
-        .assignTimestampsAndWatermarks(ws)
-        .process(new ProcessFunction<MyEvent, String>() {
-            @Override
-            public void processElement(MyEvent event, Context ctx, Collector<String> out) {
-                out.collect(event.f1 + "| WS: " + ctx.timerService().currentWatermark());
-            }
-        })
+        .map(EdgeEventFormat::new)
+        .assignTimestampsAndWatermarks(
+            WatermarkStrategy //Sets up time for expiration given edge start times and lateness available
+            .<EdgeEventFormat>forBoundedOutOfOrderness(Duration.ofMillis(watermarkDelta))
+            .withTimestampAssigner((event, ts) -> event.timestamp))
+        .keyBy(edge -> 0)
+        .process(new GraphExpirer(window_size))
         .print();
         // .map(MyEvent::new).process(new ProcessFunction<MyEvent, String>() {
         //     @Override
