@@ -3,7 +3,7 @@ package if5.datasystems.core.models.queries;
 import if5.datasystems.core.models.aliases.Pair;
 import if5.datasystems.core.models.aliases.State;
 
-import java.sql.Time;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,14 +30,14 @@ import lombok.Data;
     return this.indexPath.containsKey(rootName);
   }
   
-  public ArrayList<SpanningTree> expandableTrees(Pair<String,State> searchNodeKey, Time t){
+  public ArrayList<SpanningTree> expandableTrees(Pair<String,State> searchNodeKey, Instant t){
     ArrayList<SpanningTree> treesWithSearchNode = new ArrayList<>();
     for(Map.Entry e : this.indexPath.entrySet()){
       SpanningTree Ts = (SpanningTree) e.getValue();
       IndexNode searchedNode = Ts.getNode(searchNodeKey);
-      Time searchedTs = searchedNode.getStartTime();
-      Time searchedExp = searchedNode.getExpiricy();
-      if(searchedNode == null || (searchedTs.before(t) && searchedExp.after(t))){continue;} // Is exp open? In that case ouch, to change
+      Instant searchedTs = searchedNode.getStartTime();
+      Instant searchedExp = searchedNode.getExpiricy();
+      if(searchedNode == null || (searchedTs.isBefore(t) && searchedExp.isAfter(t))){continue;} // Is exp open? In that case ouch, to change
       treesWithSearchNode.add(Ts);
     }
     return treesWithSearchNode;

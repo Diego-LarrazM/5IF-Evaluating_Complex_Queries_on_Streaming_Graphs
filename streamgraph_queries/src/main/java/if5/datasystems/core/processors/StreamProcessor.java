@@ -2,20 +2,27 @@ package if5.datasystems.core.processors;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 
 import if5.datasystems.core.models.streamingGraph.Edge;
 
-import java.sql.Time;
+import java.time.Instant;
 import java.time.Duration;
 import java.util.ArrayList;
 
+import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.fs.Path;
 import org.apache.flink.util.Collector;
+
+import org.apache.flink.connector.file.src.FileSource;
+import org.apache.flink.connector.file.src.reader.TextLineInputFormat;
 
 public class StreamProcessor {
 
@@ -46,18 +53,18 @@ public class StreamProcessor {
             // Processing of each event (Edge + timestamp + Watermark)
 
             // Update State
-            edge.setExpiricy(edge.getStartTime() + WINDOW_SIZE);
+            edge.setExpiricy(Instant.ofEpochMilli(edge.getStartTime_ms() + WINDOW_SIZE));
             graph.add(edge);
             
             // Downstream to output for printing
             out.collect(
-                "ADD    " + edge +
+                "ADD    " + edge.getStartTime_ms() + ", " + edge.getExpiricy_ms()  +
                 " | watermark=" +
                 context.timerService().currentWatermark()
             );
 
             // Register expiration timer to call onTimer when currentWatermark >= expirationTimer
-            context.timerService().registerEventTimeTimer(edge.getExpiricy());
+            context.timerService().registerEventTimeTimer(edge.getExpiricy_ms());
         }
 
         @Override
@@ -68,10 +75,10 @@ public class StreamProcessor {
             // Timer triggered when currentWatermark >= expirationTimer
             ArrayList<Edge> remaining  = new ArrayList<>();
             for (Edge e: graph.get()){
-                if (e.getExpiricy() <= timestamp) {
+                if (e.getExpiricy_ms() <= timestamp) {
                     // Expire edge
                     out.collect(
-                        "REMOVE " + e +
+                        "REMOVE " + e.getStartTime_ms() + ", " + e.getExpiricy_ms() +
                         " | watermark=" +
                         context.timerService().currentWatermark()
                     );
@@ -85,24 +92,57 @@ public class StreamProcessor {
         }
     }
 
-    public StreamProcessor(ArrayList<Edge> edges, long window_size, int watermarkDelta) {
+    public StreamProcessor(String stream_file_path, long window_size, int watermarkDelta) {
         this.env = StreamExecutionEnvironment.getExecutionEnvironment();
         this.env.setParallelism(1);
+        this.env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
 
-        ArrayList<Edge> safeEdges = edges;
+        DataStream<String> socketStream = this.env.socketTextStream("localhost", 8080);
 
-        this.streamGraph = env.fromCollection(edges);
-
-        WatermarkStrategy<Edge> watermarkStrategy = WatermarkStrategy
-            .<Edge>forBoundedOutOfOrderness(Duration.ofSeconds(watermarkDelta))
-            //.<Edge>forMonotonousTimestamps()
-            .withTimestampAssigner((edge,ts)-> edge.getStartTime()); //.getTime()
-
-        this.streamGraph
-            .assignTimestampsAndWatermarks(watermarkStrategy)
-            .keyBy(edge -> 0)
-            .process(new GraphExpirer(window_size))
-            .print();
+        // this.streamGraph =  
+                            // env.fromSource(
+                            //     FileSource.forRecordStreamFormat(
+                            //         new EdgeStreamFormat(), // Reads CSV to Edge
+                            //         new Path(stream_file_path)
+                            //     ).build()
+                            
+                                // WatermarkStrategy // Sets up time for expiration given edge start times and lateness available
+                                //     .<Edge>forBoundedOutOfOrderness(Duration.ofMillis(watermarkDelta))
+                                //     .withTimestampAssigner((edge, ts) -> edge.getStartTime_ms())
+                                // ,
+                                // "CSV Test Source"
+                            // );
+        WatermarkStrategy ws = WatermarkStrategy //Sets up time for expiration given edge start times and lateness available
+            .<MyEvent>forBoundedOutOfOrderness(Duration.ofMillis(watermarkDelta))
+            .withTimestampAssigner((evnt, ts) -> evnt.f2);
+        socketStream
+        .filter(s->(s != "" && s != null))
+        .map(MyEvent::new)
+        .assignTimestampsAndWatermarks(ws)
+        .process(new ProcessFunction<MyEvent, String>() {
+            @Override
+            public void processElement(MyEvent event, Context ctx, Collector<String> out) {
+                out.collect(event.f1 + "| WS: " + ctx.timerService().currentWatermark());
+            }
+        })
+        .print();
+        // .map(MyEvent::new).process(new ProcessFunction<MyEvent, String>() {
+        //     @Override
+        //     public void processElement(MyEvent event, Context ctx, Collector<String> out) {
+        //         out.collect(event.toString());
+        //     }
+        // }).print();
+        // this.streamGraph.process(new ProcessFunction<Edge, Edge>() {
+        //     @Override
+        //     public void processElement(Edge edge, Context ctx, Collector<Edge> out) {
+        //         System.out.println("EDGE: " + edge.getStartTime_ms() + " | WM=" + ctx.timerService().currentWatermark());
+        //         out.collect(edge);
+        //     }
+        // });
+            //.assignTimestampsAndWatermarks(watermarkStrategy)
+            // .keyBy(edge -> 0)
+            // .process(new GraphExpirer(window_size))
+            // .print();
     }
 
     public void execute(String job_name) throws Exception {

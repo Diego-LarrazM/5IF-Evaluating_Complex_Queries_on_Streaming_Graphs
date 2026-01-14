@@ -35,4 +35,8 @@ import lombok.Data;
       return repr.hashCode();
   }
 
+  public long getStartTime_ms(){
+    return this.repr.getStartTime_ms();
+  }
+
 }
