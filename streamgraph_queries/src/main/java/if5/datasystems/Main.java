@@ -14,7 +14,7 @@ public class Main {
         System.out.println("Hello world!");
 
         String abs_path = "file:///home/dlarraz/Data/Projects/5IF-Evaluating_Complex_Queries_on_Streaming_Graphs/streamgraph_queries/src/main/java/if5/datasystems/Edges.csv";
-        StreamProcessor processor = new StreamProcessor(abs_path, 2000, 1000);
+        StreamProcessor processor = new StreamProcessor(abs_path, 10, 0);
         try {
             processor.execute("Stream Graph Processor");
         } catch (Exception e) {

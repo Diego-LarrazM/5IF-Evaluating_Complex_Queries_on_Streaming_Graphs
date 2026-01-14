@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.configuration.Configuration;
@@ -37,7 +38,7 @@ public class StreamProcessor {
         }
 
         @Override
-        public void open(Configuration config) throws Exception {
+        public void open(OpenContext ctx) throws Exception {
             graph = getRuntimeContext().getListState(
                 new ListStateDescriptor<>("graph", Edge.class)
             );
