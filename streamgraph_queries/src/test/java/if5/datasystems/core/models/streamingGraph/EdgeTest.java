@@ -2,7 +2,7 @@ package if5.datasystems.core.models.streamingGraph;
 
 import org.junit.jupiter.api.Test;
 
-import java.sql.Time;
+import java.time.Instant;
 
 import if5.datasystems.core.models.aliases.Label;
 
@@ -14,8 +14,8 @@ public class EdgeTest {
     @Test
     void testEdgeSettersAndGetters() {
         Label lbl = new Label("knows"); // ...assumes simple Label constructor
-        Time start = Time.valueOf("10:00:00");
-        Time end = Time.valueOf("11:00:00");
+        Instant start = Instant.parse("2026-01-01T10:00:00Z");
+        Instant end = Instant.parse("2026-01-01T11:00:00Z");
 
         Edge e = new Edge();
         e.setSource("A");
@@ -34,8 +34,8 @@ public class EdgeTest {
     @Test
     void testEqualsAndHashCodeSameValues() {
         Label lbl = new Label("likes");
-        Edge e1 = new Edge("X", "Y", lbl, Time.valueOf("00:00:00"), Time.valueOf("00:10:00"));
-        Edge e2 = new Edge("X", "Y", lbl, Time.valueOf("00:05:00"), Time.valueOf("00:15:00"));
+        Edge e1 = new Edge("X", "Y", lbl, Instant.parse("2026-01-01T00:00:00Z"), Instant.parse("2026-01-01T00:10:00Z"));
+        Edge e2 = new Edge("X", "Y", lbl, Instant.parse("2026-01-01T00:05:00Z"), Instant.parse("2026-01-01T00:15:00Z"));
 
         // equals compares source, target and label only
         assertEquals(e1, e2);
@@ -46,8 +46,8 @@ public class EdgeTest {
     void testNotEqualsDifferentLabel() {
         Label lbl1 = new Label("a");
         Label lbl2 = new Label("b");
-        Edge e1 = new Edge("S", "T", lbl1, Time.valueOf("00:00:00"), null);
-        Edge e2 = new Edge("S", "T", lbl2, Time.valueOf("00:00:00"), null);
+        Edge e1 = new Edge("S", "T", lbl1, Instant.parse("2026-01-01T00:00:00Z"), null);
+        Edge e2 = new Edge("S", "T", lbl2, Instant.parse("2026-01-01T00:00:00Z"), null);
 
         assertNotEquals(e1, e2);
     }
@@ -55,8 +55,8 @@ public class EdgeTest {
     @Test
     void testNotEqualsDifferentEndpoints() {
         Label lbl = new Label("r");
-        Edge e1 = new Edge("U", "V", lbl, Time.valueOf("00:00:00"), null);
-        Edge e2 = new Edge("U", "W", lbl, Time.valueOf("00:00:00"), null);
+        Edge e1 = new Edge("U", "V", lbl, Instant.parse("2026-01-01T00:00:00Z"), null);
+        Edge e2 = new Edge("U", "W", lbl, Instant.parse("2026-01-01T00:00:00Z"), null);
 
         assertNotEquals(e1, e2);
     }

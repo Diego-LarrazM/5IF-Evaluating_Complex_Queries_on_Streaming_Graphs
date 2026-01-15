@@ -3,6 +3,7 @@ package if5.datasystems.core.models.streamingGraph;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Time;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,7 +26,7 @@ public class StreamingGraphTest {
     @Test
     void testAddAndCoalesceTuples() {
         Label lbl = new Label("co");
-        Edge repr = new Edge("P", "Q", lbl, Time.valueOf("03:00:00"), null);
+        Edge repr = new Edge("P", "Q", lbl, Instant.parse("2026-01-01T03:00:00Z"), null);
 
         StreamingGraphTuple t1 = new StreamingGraphTuple();
         t1.setRepr(repr);
