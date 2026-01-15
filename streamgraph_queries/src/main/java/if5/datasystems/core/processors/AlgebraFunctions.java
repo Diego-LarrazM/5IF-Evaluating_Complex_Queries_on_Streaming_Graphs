@@ -1,6 +1,6 @@
 package if5.datasystems.core.processors;
 
-import java.sql.Time;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -14,14 +14,14 @@ import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 
 public class AlgebraFunctions {
-    public static StreamingGraph Snapshot(StreamingGraph S, Time snapTime){
+    public static StreamingGraph Snapshot(StreamingGraph S, Instant snapTime){
         StreamingGraph resultGraph = new StreamingGraph();
-        long t = snapTime.getTime();
+        long t = snapTime.toEpochMilli();
         
         for (StreamingGraphTuple tuple : S.getTuples())
         {
-            long ts = tuple.getRepr().getStartTime().getTime();
-            long exp = tuple.getRepr().getExpiricy().getTime();
+            long ts = tuple.getStartTime_ms();
+            long exp = tuple.getStartTime_ms();
 
             if (ts <= t && t < exp)
             {

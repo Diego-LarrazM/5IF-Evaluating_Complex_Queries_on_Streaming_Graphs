@@ -1,6 +1,5 @@
 package if5.datasystems.core.models.streamingGraph;
 
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +32,10 @@ import lombok.Data;
   @Override
   public int hashCode() {
       return repr.hashCode();
+  }
+
+  public long getStartTime_ms(){
+    return this.repr.getStartTime_ms();
   }
 
 }

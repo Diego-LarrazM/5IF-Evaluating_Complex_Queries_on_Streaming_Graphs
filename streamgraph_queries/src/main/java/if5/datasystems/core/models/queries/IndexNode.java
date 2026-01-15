@@ -1,6 +1,6 @@
 package if5.datasystems.core.models.queries;
 
-import java.sql.Time;
+import java.time.Instant;
 
 import if5.datasystems.core.models.aliases.Label;
 import if5.datasystems.core.models.aliases.Pair;
@@ -11,8 +11,8 @@ import lombok.Data;
 public class IndexNode {
     private String name;
     private State state;
-    private Time startTime;
-    private Time expiricy;
+    private Instant startTime;
+    private Instant expiricy;
     private Pair<String, State> parent;
     private Label fromLabel;
 
@@ -21,7 +21,7 @@ public class IndexNode {
         this.state = state;
     }
 
-    public IndexNode(String name, State state, Time startTime, Time expiricy) {
+    public IndexNode(String name, State state, Instant startTime, Instant expiricy) {
         this.name = name;
         this.state = state;
         this.startTime = startTime;
