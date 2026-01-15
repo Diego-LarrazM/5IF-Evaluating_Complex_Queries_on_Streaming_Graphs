@@ -1,20 +1,25 @@
 package if5.datasystems.core.models.streamingGraph;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
+import if5.datasystems.core.models.aliases.Label;
 import lombok.Data;
 
 @Data public class StreamingGraph {
-  private Map<Label, LabeledGraphStream> graphs;
+  private Set<StreamingGraphTuple> tuples;
+
+  public StreamingGraph(){
+    this.tuples = new HashSet<>(); // We really need to think if its a hashset or a orderedSet for coalesce and ordering
+  }
+
+  public StreamingGraph(Set<StreamingGraphTuple> tuples){
+    this.tuples = tuples; // We really need to think if its a hashset or a orderedSet for coalesce and ordering
+  }
 
   public void add(StreamingGraphTuple tuple) {
-    if(tuple == null){return;}
-
-    LabeledGraphStream subgraph_l = this.graphs.get(tuple.getLabel());
-    if(subgraph_l == null){
-      subgraph_l = new LabeledGraphStream(tuple.getLabel());
-      this.graphs.put(tuple.getLabel(), subgraph_l);
-    }
-    subgraph_l.add(tuple);
+    if (tuple == null) {return;}
+    this.tuples.add(tuple); // Coalesce to implement with ordering of tupels by time
   }
 }
