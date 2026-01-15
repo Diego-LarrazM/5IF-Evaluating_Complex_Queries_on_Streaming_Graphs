@@ -92,7 +92,7 @@ public class StreamProcessor {
         }
     }
 
-    public StreamProcessor(String stream_file_path, long window_size, int watermarkDelta) {
+    public StreamProcessor(long window_size, int watermarkDelta) {
         this.env = StreamExecutionEnvironment.getExecutionEnvironment();
         this.env.setParallelism(1);
         this.env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
