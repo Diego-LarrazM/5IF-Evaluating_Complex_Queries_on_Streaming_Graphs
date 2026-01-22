@@ -2,7 +2,6 @@ package if5.datasystems.core.processors;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 
 import if5.datasystems.core.models.aliases.Label;
 import if5.datasystems.core.models.aliases.Pair;

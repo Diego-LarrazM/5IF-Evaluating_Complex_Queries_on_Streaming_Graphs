@@ -1,7 +1,9 @@
 package if5.datasystems.core.models.streamingGraph;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Comparator;
 
 import lombok.Data;
 
@@ -11,6 +13,12 @@ import lombok.Data;
 
   public StreamingGraphTuple(){
     this.content = new ArrayList<>();
+  }
+
+  public StreamingGraphTuple(Edge repr){
+    this.repr = repr;
+    this.content = new ArrayList<>();
+    this.content.add(repr);
   }
 
   public void add(Edge e){
@@ -37,5 +45,25 @@ import lombok.Data;
   public long getStartTime_ms(){
     return this.repr.getStartTime_ms();
   }
+  public long getExpiricy_ms(){
+    return this.repr.getExpiricy_ms();
+  }
 
+  public StreamingGraphTuple mergeTuple(StreamingGraphTuple sgt) {
+    Edge e = this.repr;
+    e.setStartTime(
+      Instant.ofEpochMilli(Math.min(
+        e.getStartTime_ms(),
+        sgt.getStartTime_ms())));
+    e.setExpiricy(
+      Instant.ofEpochMilli(Math.max(
+        e.getExpiricy_ms(),
+        sgt.getExpiricy_ms())));
+      
+    return new StreamingGraphTuple(e);
+  }
+
+  public static final Comparator<StreamingGraphTuple> BY_EXPIRICY = Comparator
+        .comparing((StreamingGraphTuple t) -> t.getExpiricy_ms())
+        .thenComparing(t -> t.getStartTime_ms());
 }

@@ -1,9 +1,9 @@
 package if5.datasystems.core.processors;
 
-import java.util.HashSet; 
-import java.util.Map;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -19,9 +19,8 @@ import if5.datasystems.core.models.queries.SpanningTree;
 import if5.datasystems.core.models.streamingGraph.Edge;
 import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
-import if5.datasystems.core.processors.AlgebraFunctions.*;
 
-public class SPath implements Function<Triple<StreamingGraph, String, Label>, StreamingGraph> { 
+public class SPath implements Function<Triple<StreamingGraph, Label, Label>, StreamingGraph> { 
 
   private Set<StreamingGraphTuple> Expand(SpanningTree T, Pair<String, State> parentKey, Pair<String, State> childKey, Edge edge, Automaton automaton, StreamingGraph S, Label outputLabel) {
     HashSet<StreamingGraphTuple> results = new HashSet<>();
@@ -85,8 +84,8 @@ public class SPath implements Function<Triple<StreamingGraph, String, Label>, St
     return results;
   }
 
-  private StreamingGraph spath(StreamingGraph S, String pathLabel, Label outputLabel) {
-    HashSet<StreamingGraphTuple> results = new HashSet<>();
+  private StreamingGraph spath(StreamingGraph S, Label pathLabel, Label outputLabel) {
+    TreeSet<StreamingGraphTuple> results = new TreeSet<>(StreamingGraphTuple.BY_EXPIRICY);
     Automaton automaton = new Automaton(pathLabel); // TO implement automaton definition from regular query
     IndexPath deltaPath = new IndexPath();
 
@@ -140,11 +139,11 @@ public class SPath implements Function<Triple<StreamingGraph, String, Label>, St
         }
       }
     }
-    return new StreamingGraph(results);
+    return new StreamingGraph(new LinkedList<>(results));
   }
 
   @Override
-  public StreamingGraph apply(Triple<StreamingGraph, String, Label> input){
+  public StreamingGraph apply(Triple<StreamingGraph, Label, Label> input){
     return spath(input.first(), input.second(), input.third());
   }
 

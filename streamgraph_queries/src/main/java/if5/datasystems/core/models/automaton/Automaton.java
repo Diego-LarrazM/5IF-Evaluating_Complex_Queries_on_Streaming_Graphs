@@ -17,7 +17,7 @@ public class Automaton {
     private HashSet<State> finalStates;
     private State initialState;
 
-    public Automaton(String uniqueLabel){
+    public Automaton(Label uniqueLabel){
         HashMap<Pair<State, Label>, State> transitions = new HashMap<>();
         HashSet<State> Fstates = new HashSet<>();
         this.initialState = new State("s0");
@@ -30,23 +30,23 @@ public class Automaton {
         }
 
         int labelLength = uniqueLabel.length(); 
-        char LastChar = uniqueLabel.charAt(labelLength-1);
+        char LastChar = uniqueLabel.l.charAt(labelLength-1);
         if(LastChar == '+'){ // label+: s0 -l-> s1 [ -l-> s1 ]
             State nextState = new State("s1");
-            String label = uniqueLabel.substring(0, labelLength-1);
+            String label = uniqueLabel.l.substring(0, labelLength-1);
             transitions.put(new Pair<>(this.initialState,new Label(label)),nextState);
             Fstates.add(nextState);
             transitions.put(new Pair<>(nextState,new Label(label)),nextState);
             this.states.add(nextState);            
         }
         else if(LastChar == '*'){ // label*: s0 [ -l-> s0 ]
-            String label = uniqueLabel.substring(0, labelLength-1);
+            String label = uniqueLabel.l.substring(0, labelLength-1);
             transitions.put(new Pair<>(this.initialState, new Label(label)), this.initialState);
             Fstates.add(this.initialState);
         }
         else{ // label:  s0 -l-> s1
             State nextState = new State("s1");
-            transitions.put(new Pair<>(this.initialState, new Label(uniqueLabel)), nextState);
+            transitions.put(new Pair<>(this.initialState, uniqueLabel), nextState);
             Fstates.add(nextState);
             this.states.add(nextState);
         }
