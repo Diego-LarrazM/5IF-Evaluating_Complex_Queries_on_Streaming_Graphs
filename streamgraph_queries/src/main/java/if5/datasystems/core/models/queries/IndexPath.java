@@ -29,17 +29,29 @@ import lombok.Data;
   public boolean contains(String rootName){
     return this.indexPath.containsKey(rootName);
   }
-  
-  public ArrayList<SpanningTree> expandableTrees(Pair<String,State> searchNodeKey, Instant t){
-    ArrayList<SpanningTree> treesWithSearchNode = new ArrayList<>();
-    for(Map.Entry e : this.indexPath.entrySet()){
-      SpanningTree Ts = (SpanningTree) e.getValue();
-      IndexNode searchedNode = Ts.getNode(searchNodeKey);
-      Instant searchedTs = searchedNode.getStartTime();
-      Instant searchedExp = searchedNode.getExpiricy();
-      if(searchedNode == null || (searchedTs.isBefore(t) && searchedExp.isAfter(t))){continue;} // Is exp open? In that case ouch, to change
-      treesWithSearchNode.add(Ts);
+
+  public ArrayList<SpanningTree> expandableTrees(Pair<String, State> searchNodeKey, Instant t) {
+    ArrayList<SpanningTree> result = new ArrayList<>();
+    for (SpanningTree tree : indexPath.values()) {
+      IndexNode node = tree.getNode(searchNodeKey);
+
+      if (node == null) {
+        continue;
+      }
+
+      Instant start = node.getStartTime();
+      Instant exp = node.getExpiricy();
+
+      if (start != null && t.isBefore(start)) {
+        continue;
+      }
+      if (exp != null && !t.isBefore(exp)) {
+        continue;
+      }
+
+      result.add(tree);
     }
-    return treesWithSearchNode;
+    return result;
   }
+
 }

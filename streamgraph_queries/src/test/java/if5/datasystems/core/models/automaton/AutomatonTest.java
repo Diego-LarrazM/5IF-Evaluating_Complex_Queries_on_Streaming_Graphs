@@ -14,7 +14,7 @@ class AutomatonTest {
     // ---------- Simple label ----------
     @Test
     void testSimpleLabel() {
-        Automaton automaton = new Automaton("aLabel");
+        Automaton automaton = new Automaton(new Label("aLabel"));
 
         State s0 = new State("s0");
         State s1 = new State("s1");
@@ -43,7 +43,7 @@ class AutomatonTest {
     // ---------- Label+ ----------
     @Test
     void testLabelPlus() {
-        Automaton automaton = new Automaton("bLabel+");
+        Automaton automaton = new Automaton(new Label("bLabel+"));
 
         State s0 = new State("s0");
         State s1 = new State("s1");
@@ -73,7 +73,7 @@ class AutomatonTest {
     // ---------- Label* ----------
     @Test
     void testLabelStar() {
-        Automaton automaton = new Automaton("cLabel*");
+        Automaton automaton = new Automaton(new Label("cLabel*"));
 
         State s0 = new State("s0");
         State s1 = new State("s1");
@@ -100,7 +100,7 @@ class AutomatonTest {
     // ---------- Edge cases ----------
     @Test
     void testEmptyLabel() {
-        Automaton automaton = new Automaton("");
+        Automaton automaton = new Automaton(new Label(""));
 
         State s0 = new State("s0");
         State s1 = new State("s1");
@@ -118,7 +118,7 @@ class AutomatonTest {
 
     @Test
     void testUnknownTransitionReturnsNull() {
-        Automaton automaton = new Automaton("x");
+        Automaton automaton = new Automaton(new Label("x"));
 
         State s0 = new State("s0");
         Label unknown = new Label("y");

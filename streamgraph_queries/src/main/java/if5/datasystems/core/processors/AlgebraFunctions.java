@@ -20,7 +20,7 @@ public class AlgebraFunctions {
         for (StreamingGraphTuple tuple : S.getTuples())
         {
             long ts = tuple.getStartTime_ms();
-            long exp = tuple.getStartTime_ms();
+            long exp = tuple.getExpiricy_ms();
 
             if (ts <= t && t < exp)
             {
@@ -32,6 +32,12 @@ public class AlgebraFunctions {
 
     private static StreamingGraphTuple buildSGT(ArrayList<Edge> edges,Label outputLabel) {
         StreamingGraphTuple sgt = new StreamingGraphTuple();
+
+        if (edges.isEmpty()) {
+            sgt.setContent(new ArrayList<>());
+            return sgt;
+        }
+
         Edge startE = edges.get(0);
         Edge endE = edges.getLast();
         

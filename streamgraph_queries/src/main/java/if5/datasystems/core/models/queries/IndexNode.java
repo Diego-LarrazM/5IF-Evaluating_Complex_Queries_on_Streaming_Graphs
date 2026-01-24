@@ -33,7 +33,7 @@ public class IndexNode {
         if (this == o) return true;
         if (!(o instanceof IndexNode)) return false;
         IndexNode other = (IndexNode) o;
-        return name.equals(other.name) && state == other.state;
+        return name.equals(other.name) && state.equals(other.state);
     }
 
     @Override

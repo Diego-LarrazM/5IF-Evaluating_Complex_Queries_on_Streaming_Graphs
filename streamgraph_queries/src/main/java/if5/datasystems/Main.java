@@ -11,11 +11,11 @@ import if5.datasystems.core.processors.StreamProcessor;
 
 public class Main {
     public static void main(String[] args) {
-        StreamProcessor processor = new StreamProcessor(10, 0);
+        /*StreamProcessor processor = new StreamProcessor(10, 0);
         try {
             processor.execute("Stream Graph Processor");
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
     }
 }
