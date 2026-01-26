@@ -39,6 +39,7 @@ public class SPath implements Function<Triple<StreamingGraph, Label, Label>, Str
 
     for (StreamingGraphTuple sgt: AlgebraFunctions.Snapshot(S, child.getStartTime()).getTuples()) {
       for(Edge e: sgt.getContent()){
+        if(!e.getSource().equals(childKey.first())) continue;
         State q = automaton.transition(child.getState(), e.getLabel());
         if (q == null) continue;
         String w = e.getTarget();
@@ -71,6 +72,7 @@ public class SPath implements Function<Triple<StreamingGraph, Label, Label>, Str
 
     for (StreamingGraphTuple sgt: AlgebraFunctions.Snapshot(S, child.getStartTime()).getTuples()) {
         for(Edge e: sgt.getContent()){
+          if(!e.getSource().equals(childKey.first())) continue;
           State q = automaton.transition(child.getState(), e.getLabel());
           if (q == null) continue;
           String w = e.getTarget();
@@ -80,7 +82,6 @@ public class SPath implements Function<Triple<StreamingGraph, Label, Label>, Str
           }
         }
     }
-    
     return results;
   }
 
