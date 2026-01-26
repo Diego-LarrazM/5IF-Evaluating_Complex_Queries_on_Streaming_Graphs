@@ -65,5 +65,5 @@ import lombok.Data;
 
   public static final Comparator<StreamingGraphTuple> BY_EXPIRICY = Comparator
         .comparing((StreamingGraphTuple t) -> t.getExpiricy_ms())
-        .thenComparing(t -> t.getStartTime_ms());
+        .thenComparing(t -> t.getRepr().toString());
 }

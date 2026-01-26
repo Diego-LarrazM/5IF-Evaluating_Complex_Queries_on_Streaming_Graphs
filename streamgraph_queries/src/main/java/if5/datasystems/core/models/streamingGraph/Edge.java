@@ -61,4 +61,8 @@ import lombok.Data;
     return this.expiricy.toEpochMilli();
   }
 
+  public String toString(){
+    return "Edge("+this.source+" --"+this.label+"--> "+this.target+")";
+  }
+
 }

@@ -77,7 +77,7 @@ public class AlgebraFunctions {
             //     edges.add(e);
             //     currentLabel=e.getLabel();
             // }
-            edges.add(e);
+            edges.addFirst(e);
 
             currentNode = parent;
         }
