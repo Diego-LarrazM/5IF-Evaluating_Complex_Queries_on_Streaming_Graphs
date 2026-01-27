@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 import if5.datasystems.core.models.aliases.Label;
 import if5.datasystems.core.models.aliases.Pair;
@@ -17,7 +18,7 @@ public class Automaton {
     private HashSet<State> finalStates;
     private State initialState;
 
-    public Automaton(Label uniqueLabel){
+    /*public Automaton(Label uniqueLabel){
         HashMap<Pair<State, Label>, State> transitions = new HashMap<>();
         HashSet<State> Fstates = new HashSet<>();
         this.initialState = new State("s0");
@@ -53,6 +54,70 @@ public class Automaton {
         this.transitions = transitions;
         this.finalStates = Fstates;
         
+    }*/
+
+    public Automaton(Label labels) {
+        this.transitions = new HashMap<>();
+        this.states = new HashSet<>();
+        this.finalStates = new HashSet<>();
+        this.initialState = new State("s0");
+        this.states.add(this.initialState);
+
+        if (labels == null || labels.isEmpty()) {
+            return;
+        }
+
+        Set<State> possibleStarts = new HashSet<>();
+        possibleStarts.add(this.initialState);
+        Set<State> lastNonStarStarts = null;
+        int stateCounter = 1;
+
+        // Split labels by comma
+        String[] tokens = labels.l().split(",");
+
+        for (String token : tokens) {
+            token = token.trim();
+            if (token.isEmpty()) continue;
+
+            char lastChar = token.charAt(token.length() - 1);
+            String baseLabel = token;
+            boolean isStar = false;
+            boolean isPlus = false;
+
+            if (lastChar == '*') {
+                isStar = true;
+                baseLabel = token.substring(0, token.length() - 1);
+            } else if (lastChar == '+') {
+                isPlus = true;
+                baseLabel = token.substring(0, token.length() - 1);
+            }
+
+            State newState = new State("s" + stateCounter++);
+            this.states.add(newState);
+
+            // Add transitions from all possibleStarts to newState on baseLabel
+            for (State startState : possibleStarts) {
+                this.transitions.put(new Pair<>(startState, new Label(baseLabel)), newState);
+            }
+
+            if (isStar || isPlus) {
+                // Add loop transition for star or plus
+                this.transitions.put(new Pair<>(newState, new Label(baseLabel)), newState);
+                if (isStar) {
+                    possibleStarts.add(newState); // For star, add newState to possibleStarts
+                } else { // isPlus
+                    possibleStarts = new HashSet<>(); // Reset possibleStarts for non star
+                    possibleStarts.add(newState);
+                    lastNonStarStarts = new HashSet<>(possibleStarts); // Update lastNonStarStarts
+                }
+            } else {
+                possibleStarts = new HashSet<>(); // Reset possibleStarts for non star
+                possibleStarts.add(newState);
+                lastNonStarStarts = new HashSet<>(possibleStarts); // Update lastNonStarStarts
+            }
+        }
+        // Mark final states
+        this.finalStates.addAll(possibleStarts);
     }
 
     public boolean isFinal(State state) {
