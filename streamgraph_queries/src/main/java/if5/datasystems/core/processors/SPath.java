@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import if5.datasystems.core.models.aliases.Label;
 import if5.datasystems.core.models.aliases.Pair;
 import if5.datasystems.core.models.aliases.State;
-import if5.datasystems.core.models.aliases.Triple;
+import if5.datasystems.core.models.aliases.Tuple4;
 import if5.datasystems.core.models.automaton.Automaton;
 import if5.datasystems.core.models.queries.IndexNode;
 import if5.datasystems.core.models.queries.IndexPath;
@@ -20,7 +20,7 @@ import if5.datasystems.core.models.streamingGraph.Edge;
 import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 
-public class SPath implements Function<Triple<StreamingGraph, Label, Label>, StreamingGraph> { 
+public class SPath implements Function<Tuple4<IndexPath, StreamingGraph, Label, Label>, StreamingGraph> { 
 
   private Set<StreamingGraphTuple> Expand(SpanningTree T, Pair<String, State> parentKey, Pair<String, State> childKey, Edge edge, Automaton automaton, StreamingGraph S, Label outputLabel) {
     HashSet<StreamingGraphTuple> results = new HashSet<>();
@@ -85,10 +85,9 @@ public class SPath implements Function<Triple<StreamingGraph, Label, Label>, Str
     return results;
   }
 
-  private StreamingGraph spath(StreamingGraph S, Label pathLabel, Label outputLabel) {
+  private StreamingGraph spath(IndexPath deltaPath, StreamingGraph S, Label pathLabel, Label outputLabel) {
     TreeSet<StreamingGraphTuple> results = new TreeSet<>(StreamingGraphTuple.BY_EXPIRICY);
     Automaton automaton = new Automaton(pathLabel); // TO implement automaton definition from regular query
-    IndexPath deltaPath = new IndexPath();
 
     for (StreamingGraphTuple tuple : S.getTuples()) {
       Edge edge = tuple.getRepr();
@@ -144,8 +143,8 @@ public class SPath implements Function<Triple<StreamingGraph, Label, Label>, Str
   }
 
   @Override
-  public StreamingGraph apply(Triple<StreamingGraph, Label, Label> input){
-    return spath(input.first(), input.second(), input.third());
+  public StreamingGraph apply(Tuple4<IndexPath, StreamingGraph, Label, Label> input){
+    return spath(input.first(), input.second(), input.third(), input.fourth());
   }
 
 

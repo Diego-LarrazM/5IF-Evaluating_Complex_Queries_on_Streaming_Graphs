@@ -22,6 +22,8 @@ import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 import if5.datasystems.core.models.aliases.Label;
 import if5.datasystems.core.models.aliases.Pair;
 import if5.datasystems.core.models.aliases.Triple;
+import if5.datasystems.core.models.aliases.Tuple4;
+import if5.datasystems.core.models.queries.IndexPath;
 
 public class StreamProcessor {
 
@@ -64,7 +66,8 @@ public class StreamProcessor {
             
             for (Pair<Label, Label> query : this.queries) {
                 StreamingGraph queryResult = spathProcessor.apply(
-                    new Triple<>(
+                    new Tuple4<>(
+                        new IndexPath(),
                         this.streamingGraph,
                         query.first(),
                         query.second()

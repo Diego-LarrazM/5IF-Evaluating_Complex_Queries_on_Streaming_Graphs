@@ -1,12 +1,26 @@
 package if5.datasystems.core.models.streamingGraph;
 
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import if5.datasystems.core.models.aliases.Label;
 import lombok.Data;
 
 @Data public class StreamingGraph {
   private LinkedList<StreamingGraphTuple> tuples;
+
+  public boolean containsPath(String... nodes) {
+      if (nodes == null || nodes.length < 2) return false;
+
+      for (StreamingGraphTuple tuple : tuples) {
+          if (tuple.isPath(nodes)) {
+              return true;
+          }
+      }
+
+      return false;
+  }
 
   public StreamingGraph(){
     this.tuples =  new LinkedList<>();

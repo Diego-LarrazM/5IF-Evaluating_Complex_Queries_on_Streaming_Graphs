@@ -5,10 +5,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.time.Instant;
 
 import if5.datasystems.core.processors.SPath;
+
+import org.apache.flink.shaded.zookeeper3.org.apache.jute.Index;
 import org.junit.jupiter.api.Test;
 
 import if5.datasystems.core.models.aliases.Label;
 import if5.datasystems.core.models.aliases.Triple;
+import if5.datasystems.core.models.aliases.Tuple4;
+import if5.datasystems.core.models.queries.IndexPath;
 import if5.datasystems.core.models.streamingGraph.Edge;
 import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
@@ -36,13 +40,159 @@ class SPathTest {
         return g;
     }
 
+    /*@Test
+    void spath_multiple_labels_propagation_story() {
+        SPath spath = new SPath();
+
+        // ─────────────────────────
+        // Step 1
+        // ─────────────────────────
+        StreamingGraph g1 = graph(
+                edge("x", "y", "a", 0, 1000),
+                edge("z", "l", "b", 0, 1000)
+        );
+
+        StreamingGraph r1 = spath.apply(
+                new Triple<>(g1, new Label("a,b*"), new Label("out"))
+        );
+
+        assertEquals(1, r1.getTuples().size());
+        assertTrue(r1.containsPath("x", "y"));
+
+        // ─────────────────────────
+        // Step 2
+        // ─────────────────────────
+        StreamingGraph g2 = graph(
+                edge("x", "y", "a", 0, 1000),
+                edge("y", "z", "a", 0, 1000),
+                edge("z", "l", "b", 0, 1000)
+        );
+
+        StreamingGraph r2 = spath.apply(
+                new Triple<>(g2, new Label("a,b*"), new Label("out"))
+        );
+
+        assertEquals(3, r2.getTuples().size());
+        assertTrue(r2.containsPath("x", "y"));
+        assertTrue(r2.containsPath("y", "z"));
+        assertTrue(r2.containsPath("y", "z", "l"));
+
+        // ─────────────────────────
+        // Step 3
+        // ─────────────────────────
+        StreamingGraph g3 = graph(
+                edge("x", "y", "a", 0, 1000),
+                edge("y", "z", "a", 0, 1000),
+                edge("y", "l", "a", 0, 1000),
+                edge("z", "l", "b", 0, 1000)
+        );
+
+        StreamingGraph r3 = spath.apply(
+                new Triple<>(g3, new Label("a,b*"), new Label("out"))
+        );
+
+        assertEquals(3, r3.getTuples().size());
+        assertTrue(r3.containsPath("x", "y"));
+        assertTrue(r3.containsPath("y", "z"));
+        assertTrue(r3.containsPath("y", "l"));
+
+        // ─────────────────────────
+        // Step 4
+        // ─────────────────────────
+        StreamingGraph g4 = graph(
+                edge("x", "y", "a", 0, 1000),
+                edge("y", "z", "a", 0, 1000),
+                edge("y", "l", "a", 0, 1000),
+                edge("z", "l", "b", 0, 2000), // better expiry
+                edge("l", "m", "b", 0, 1000)
+        );
+
+        StreamingGraph r4 = spath.apply(
+                new Triple<>(g4, new Label("a,b*"), new Label("out"))
+        );
+
+        assertEquals(4, r4.getTuples().size());
+        assertTrue(r4.containsPath("x", "y"));
+        assertTrue(r4.containsPath("y", "z"));
+        assertTrue(r4.containsPath("y", "l"));
+        assertTrue(r4.containsPath("y", "l", "m"));
+    }*/
+
+    @Test
+    void propagate_test_multiple_incomes_single_label() {
+        SPath spath = new SPath();
+        IndexPath deltaPath = new IndexPath();
+        StreamingGraph g = graph(
+                edge("x", "y", "a", 0, 1000),
+                edge("z", "l", "a", 10, 1010),
+                edge("l", "m", "a", 10, 1010),
+                edge("y", "z", "a", 11, 1011)                      
+        );
+
+        StreamingGraph r1 = spath.apply(
+                new Tuple4<>(deltaPath, g, new Label("a+"), new Label("out"))
+        );
+
+        assertEquals(10, r1.getTuples().size());
+
+        assertTrue(r1.containsPath("x", "y"));
+        assertTrue(r1.containsPath("y", "z"));
+        assertTrue(r1.containsPath("z", "l"));
+        assertTrue(r1.containsPath("l", "m"));
+
+        assertTrue(r1.containsPath("x", "y", "z"));
+        assertTrue(r1.containsPath("y", "z", "l"));
+        assertTrue(r1.containsPath("z", "l", "m"));
+
+        assertTrue(r1.containsPath("x", "y", "z", "l"));
+        assertTrue(r1.containsPath("y", "z", "l", "m"));
+
+        assertTrue(r1.containsPath("x", "y", "z", "l", "m"));
+
+        System.out.println("Result1 tuples: " + r1.getTuples());
+
+        StreamingGraph g2 = graph(
+                edge("x", "y", "a", 0, 1000),
+                edge("z", "l", "a", 10, 1010),
+                edge("l", "m", "a", 10, 1010),
+                edge("y", "z", "a", 11, 1011),   
+                edge("y", "l", "a", 15, 1015)
+        );
+
+        StreamingGraph r2 = spath.apply(
+                new Tuple4<>(new IndexPath(), g2, new Label("a+"), new Label("out"))
+        );
+
+        System.out.println("Result2 tuples: " + r2.getTuples());
+
+        assertEquals(11, r2.getTuples().size());
+
+        
+        assertTrue(r2.containsPath("x", "y"));
+        assertTrue(r2.containsPath("y", "z"));
+        assertTrue(r2.containsPath("z", "l"));
+        assertTrue(r2.containsPath("l", "m"));
+        assertTrue(r2.containsPath("y", "l"));
+
+        assertTrue(r2.containsPath("x", "y", "z"));
+        assertTrue(r2.containsPath("x", "y", "l"));
+        assertTrue(r2.containsPath("y", "z", "l"));
+        assertTrue(r2.containsPath("z", "l", "m"));
+        assertTrue(r2.containsPath("y", "l", "m"));
+        assertTrue(r2.containsPath("x", "y", "z", "l"));
+        assertTrue(r2.containsPath("y", "z", "l", "m"));
+        assertTrue(r2.containsPath("x", "y", "l", "m"));
+
+        
+    }
+
     @Test
     void emptyGraph_returnsEmptyResult() {
         SPath spath = new SPath();
         StreamingGraph g = new StreamingGraph();
 
         StreamingGraph result = spath.apply(
-                new Triple<>(g, new Label("a"), new Label("out"))
+                new Tuple4<>(new IndexPath(), g, new Label("a"), new Label("out"))
         );
 
         assertTrue(result.getTuples().isEmpty());
@@ -56,7 +206,7 @@ class SPathTest {
         );
 
         StreamingGraph result = spath.apply(
-                new Triple<>(g, new Label("a"), new Label("p"))
+                new Tuple4<>(new IndexPath(), g, new Label("a"), new Label("p"))
         );
 
         assertEquals(1, result.getTuples().size());
@@ -75,7 +225,7 @@ class SPathTest {
         );
 
         StreamingGraph result = spath.apply(
-                new Triple<>(g, new Label("a"), new Label("p"))
+                new Tuple4<>(new IndexPath(), g, new Label("a"), new Label("p"))
         );
 
         assertTrue(result.getTuples().isEmpty());
@@ -91,7 +241,7 @@ class SPathTest {
         );
 
         StreamingGraph result = spath.apply(
-                new Triple<>(g, new Label("a+"), new Label("p"))
+                new Tuple4<>(new IndexPath(), g, new Label("a+"), new Label("p"))
         );
 
         StreamingGraph expected = new StreamingGraph();
@@ -135,7 +285,7 @@ class SPathTest {
         );
 
         StreamingGraph result = spath.apply(
-                new Triple<>(g, new Label("a+"), new Label("p"))
+                new Tuple4<>(new IndexPath(), g, new Label("a+"), new Label("p"))
         );
 
         assertTrue(
@@ -162,7 +312,7 @@ class SPathTest {
                 Instant.ofEpochMilli(0),Instant.ofEpochMilli(10))));
 
         StreamingGraph result = spath.apply(
-                new Triple<>(g, new Label("a+"), new Label("p"))
+                new Tuple4<>(new IndexPath(), g, new Label("a+"), new Label("p"))
         );
 
         long countAC =
@@ -189,7 +339,7 @@ class SPathTest {
         ));
 
         StreamingGraph result = spath.apply(
-                new Triple<>(g, new Label("a+"), new Label("p"))
+                new Tuple4<>(new IndexPath(), g, new Label("a+"), new Label("p"))
         );
 
         assertFalse(result.getTuples().isEmpty());

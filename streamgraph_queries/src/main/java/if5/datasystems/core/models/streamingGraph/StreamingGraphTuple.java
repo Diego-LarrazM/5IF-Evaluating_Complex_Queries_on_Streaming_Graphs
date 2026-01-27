@@ -29,6 +29,23 @@ import lombok.Data;
     content.add(e);
   }
 
+  public boolean isPath(String[] nodes) {
+    // Check if nodes array is compatible with the number of edges
+    if (nodes == null || nodes.length < 2 || nodes.length - 1 != content.size()) {
+        return false;
+    }
+
+    // Check each edge in content matches the consecutive nodes
+    for (int i = 0; i < content.size(); i++) {
+        Edge edge = content.get(i);
+        if (!edge.source.equals(nodes[i]) || !edge.target.equals(nodes[i + 1])) {
+            return false;
+        }
+    }
+
+    return true;
+  }
+
   @Override
   public boolean equals(Object obj){ // Value Equivalence
     if (this == obj) return true;
@@ -65,5 +82,6 @@ import lombok.Data;
 
   public static final Comparator<StreamingGraphTuple> BY_EXPIRICY = Comparator
         .comparing((StreamingGraphTuple t) -> t.getExpiricy_ms())
-        .thenComparing(t -> t.getRepr().toString());
+        .thenComparing(t -> t.getRepr().toString())
+        .thenComparing(t -> t.getContent().size()); // this can still give an error if same repr and same exp and same content size but diff content, rare case
 }
