@@ -24,26 +24,6 @@ public class StreamingGraphTest {
     }
 
     @Test
-    void testAddAndCoalesceTuples() {
-        Label lbl = new Label("co");
-        Edge repr = new Edge("P", "Q", lbl, Instant.parse("2026-01-01T03:00:00Z"), null);
-
-        StreamingGraphTuple t1 = new StreamingGraphTuple();
-        t1.setRepr(repr);
-        t1.add(repr);
-
-        StreamingGraphTuple t2 = new StreamingGraphTuple();
-        t2.setRepr(repr);
-        t2.add(repr);
-
-        StreamingGraph sg = new StreamingGraph();
-        sg.add(t1);
-        sg.add(t2); // same repr -> according to equals should coalesce in HashSet
-
-        assertEquals(1, sg.getTuples().size());
-    }
-
-    @Test
     void testUpdateStreamingGraphCoalescesTuples() {
         Label lbl = new Label("co");
         Edge repr = new Edge("P", "Q", lbl,

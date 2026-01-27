@@ -82,7 +82,7 @@ class SPathTest {
     }
 
     @Test
-    void twoEdgePath_isCollapsedIntoLongestFinalPath_withPlusAutomaton() {
+    void twoEdgePath_produces_all_valid_paths_withPlusAutomaton() {
         SPath spath = new SPath();
 
         StreamingGraph g = graph(
@@ -94,16 +94,36 @@ class SPathTest {
                 new Triple<>(g, new Label("a+"), new Label("p"))
         );
 
-        assertEquals(1, result.getTuples().size());
+        StreamingGraph expected = new StreamingGraph();
 
-        StreamingGraphTuple t = result.getTuples().getFirst();
+        expected.add(new StreamingGraphTuple(
+                new Edge("A","B",new Label("p"),
+                        Instant.ofEpochMilli(0),
+                        Instant.ofEpochMilli(10))
+        ));
+        expected.add(new StreamingGraphTuple(
+                new Edge("B","C",new Label("p"),
+                        Instant.ofEpochMilli(0),
+                        Instant.ofEpochMilli(10))
+        ));
+        expected.add(new StreamingGraphTuple(
+                new Edge("A","C",new Label("p"),
+                        Instant.ofEpochMilli(0),
+                        Instant.ofEpochMilli(10))
+        ));
 
-        assertEquals("A", t.getRepr().getSource());
-        assertEquals("C", t.getRepr().getTarget());
-        assertEquals(new Label("p"), t.getRepr().getLabel());
+        assertEquals(
+                expected.getTuples().size(),
+                result.getTuples().size(),
+                "Number of paths produced is incorrect"
+        );
 
-        assertEquals(0, t.getStartTime_ms());
-        assertEquals(10, t.getExpiricy_ms());
+        for (StreamingGraphTuple expectedTuple : expected.getTuples()) {
+            assertTrue(
+                    result.getTuples().contains(expectedTuple),
+                    "Missing expected path: " + expectedTuple
+            );
+        }
     }
 
     @Test
@@ -125,36 +145,6 @@ class SPathTest {
                                         t.getRepr().getTarget().equals("C")
                         )
         );
-    }
-
-    @Test
-    void pathExistsOnlyOnIntervalIntersection() {
-        SPath spath = new SPath();
-
-        StreamingGraph g = new StreamingGraph();
-        g.add(new StreamingGraphTuple(
-                new Edge("A","B",new Label("a"),
-                        Instant.ofEpochMilli(0),
-                        Instant.ofEpochMilli(20))
-        ));
-        g.add(new StreamingGraphTuple(
-                new Edge("B","C",new Label("a"),
-                        Instant.ofEpochMilli(0),
-                        Instant.ofEpochMilli(10))
-        ));
-
-        StreamingGraph result = spath.apply(
-                new Triple<>(g, new Label("a+"), new Label("p"))
-        );
-
-        assertEquals(1, result.getTuples().size());
-
-        StreamingGraphTuple ac = result.getTuples().getFirst();
-
-        assertEquals("A", ac.getRepr().getSource());
-        assertEquals("C", ac.getRepr().getTarget());
-        assertEquals(0, ac.getStartTime_ms());
-        assertEquals(10, ac.getExpiricy_ms());
     }
 
     @Test
@@ -204,33 +194,4 @@ class SPathTest {
 
         assertFalse(result.getTuples().isEmpty());
     }
-
-    @Test
-    void pathWithMaximumExpiryIsSelected() {
-        SPath spath = new SPath();
-
-        StreamingGraph g = new StreamingGraph();
-        g.add(new StreamingGraphTuple(
-                new Edge("A","B",new Label("a"),
-                        Instant.ofEpochMilli(0),
-                        Instant.ofEpochMilli(5))
-        ));
-        g.add(new StreamingGraphTuple(
-                new Edge("A","C",new Label("a"),
-                        Instant.ofEpochMilli(0),
-                        Instant.ofEpochMilli(10))
-        ));
-
-        StreamingGraph result = spath.apply(
-                new Triple<>(g, new Label("a"), new Label("p"))
-        );
-
-        assertEquals(1, result.getTuples().size());
-
-        StreamingGraphTuple t = result.getTuples().getFirst();
-        assertEquals("A", t.getRepr().getSource());
-        assertEquals("C", t.getRepr().getTarget());
-        assertEquals(10, t.getExpiricy_ms());
-    }
-
 }

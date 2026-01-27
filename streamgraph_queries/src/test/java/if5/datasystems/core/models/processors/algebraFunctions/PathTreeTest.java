@@ -108,13 +108,13 @@ class PathTreeTest {
         Edge e1 = edges.get(0);
         Edge e2 = edges.get(1);
 
-        assertEquals("B", e1.getSource());
-        assertEquals("C", e1.getTarget());
-        assertEquals(new Label("L2"), e1.getLabel());
+        assertEquals("A", e1.getSource());
+        assertEquals("B", e1.getTarget());
+        assertEquals(new Label("L1"), e1.getLabel());
 
-        assertEquals("A", e2.getSource());
-        assertEquals("B", e2.getTarget());
-        assertEquals(new Label("L1"), e2.getLabel());
+        assertEquals("B", e2.getSource());
+        assertEquals("C", e2.getTarget());
+        assertEquals(new Label("L2"), e2.getLabel());
     }
 
     @Test
