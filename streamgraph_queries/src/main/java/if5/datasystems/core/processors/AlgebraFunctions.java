@@ -1,8 +1,6 @@
 package if5.datasystems.core.processors;
 
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 
 import if5.datasystems.core.models.aliases.Label;
 import if5.datasystems.core.models.aliases.Pair;
@@ -14,16 +12,15 @@ import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 
 public class AlgebraFunctions {
-    public static StreamingGraph Snapshot(StreamingGraph S, Instant snapTime){
+    public static StreamingGraph Snapshot(StreamingGraph S, long snapTime){
         StreamingGraph resultGraph = new StreamingGraph();
-        long t = snapTime.toEpochMilli();
         
         for (StreamingGraphTuple tuple : S.getTuples())
         {
-            long ts = tuple.getStartTime_ms();
-            long exp = tuple.getStartTime_ms();
+            long ts = tuple.getStartTime();
+            long exp = tuple.getExpiricy();
 
-            if (ts <= t && t < exp)
+            if (ts <= snapTime && snapTime < exp)
             {
                 resultGraph.add(tuple);
             }
@@ -33,6 +30,12 @@ public class AlgebraFunctions {
 
     private static StreamingGraphTuple buildSGT(ArrayList<Edge> edges,Label outputLabel) {
         StreamingGraphTuple sgt = new StreamingGraphTuple();
+
+        if (edges.isEmpty()) {
+            sgt.setContent(new ArrayList<>());
+            return sgt;
+        }
+
         Edge startE = edges.get(0);
         Edge endE = edges.getLast();
         
@@ -61,18 +64,7 @@ public class AlgebraFunctions {
                 currentNode.getStartTime(),
                 currentNode.getExpiricy()
             );
-
-            // if(currentLabel == null || e.getLabel().equals(currentLabel)){
-            //     edges.addFirst(e);
-            // }
-            // else
-            // {
-            //     resultGraph.add(buildSGT(edges));
-            //     edges = new ArrayList<>();
-            //     edges.add(e);
-            //     currentLabel=e.getLabel();
-            // }
-            edges.add(e);
+            edges.addFirst(e);
 
             currentNode = parent;
         }

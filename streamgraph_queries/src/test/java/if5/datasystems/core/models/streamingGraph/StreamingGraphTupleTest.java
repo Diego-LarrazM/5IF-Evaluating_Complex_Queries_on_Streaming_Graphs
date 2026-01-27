@@ -15,8 +15,8 @@ public class StreamingGraphTupleTest {
     @Test
     void testAddAndContentSize() {
         Label lbl = new Label("edge");
-        Edge e1 = new Edge("A", "B", lbl, Instant.parse("2026-01-01T01:00:00Z"), null);
-        Edge e2 = new Edge("A", "C", lbl, Instant.parse("2026-01-01T01:05:00Z"), null);
+        Edge e1 = new Edge("A", "B", lbl, 3600000L, 0);
+        Edge e2 = new Edge("A", "C", lbl, 3630000L, 0);
 
         StreamingGraphTuple tuple = new StreamingGraphTuple();
         tuple.setRepr(e1); // repr must être défini pour equals/hashCode safely
@@ -33,7 +33,7 @@ public class StreamingGraphTupleTest {
     @Test
     void testEqualsBasedOnRepr() {
         Label lbl = new Label("same");
-        Edge repr = new Edge("N", "M", lbl, Instant.parse("2026-01-01T02:00:00Z"), null);
+        Edge repr = new Edge("N", "M", lbl, 2*3600000L, 0);
 
         StreamingGraphTuple t1 = new StreamingGraphTuple();
         t1.setRepr(repr);

@@ -3,45 +3,50 @@ package if5.datasystems.core.processors;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
 
 import if5.datasystems.core.models.streamingGraph.Edge;
 
-import java.time.Instant;
 import java.time.Duration;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Iterator;
 
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.OpenContext;
-import org.apache.flink.api.common.state.ListState;
-import org.apache.flink.api.common.state.ListStateDescriptor;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.core.fs.Path;
 import org.apache.flink.util.Collector;
 
-import org.apache.flink.connector.file.src.FileSource;
-import org.apache.flink.connector.file.src.reader.TextLineInputFormat;
+import if5.datasystems.core.models.streamingGraph.StreamingGraph;
+import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
+import if5.datasystems.core.models.aliases.Label;
+import if5.datasystems.core.models.aliases.Pair;
+import if5.datasystems.core.models.aliases.Triple;
+import if5.datasystems.core.models.aliases.Tuple4;
+import if5.datasystems.core.models.queries.IndexPath;
 
 public class StreamProcessor {
 
     StreamExecutionEnvironment env;
     DataStream<Edge> streamGraph;
+    QueryProcessor queryProcessor;
 
-    class GraphExpirer extends KeyedProcessFunction<Integer, EdgeEventFormat, String> {
+    class QueryProcessor extends KeyedProcessFunction<Integer, EdgeEventFormat, String> {
         private final long WINDOW_SIZE;
-        private ListState<Edge> graph;
+        private StreamingGraph streamingGraph;
+        private List<Pair<Label, Label>> queries;
+        private HashMap<String, StreamingGraph> results;
+        private SPath spathProcessor;
 
-        public GraphExpirer(long windowSize) {
+        public QueryProcessor(long windowSize, List<Pair<Label, Label>> queries) {
             this.WINDOW_SIZE = windowSize;
+            this.queries = queries;
         }
 
         @Override
         public void open(OpenContext ctx) throws Exception {
-            graph = getRuntimeContext().getListState(
-                new ListStateDescriptor<>("graph", Edge.class)
-            );
+            this.streamingGraph = new StreamingGraph();
+            this.results = new HashMap<>();
+            this.spathProcessor = new SPath();
         }
 
         @Override
@@ -53,18 +58,34 @@ public class StreamProcessor {
 
             // Update State
             Edge edge = edge_event.edge;
-            edge.setExpiricy(Instant.ofEpochMilli(edge_event.timestamp + WINDOW_SIZE));
-            graph.add(edge);
+            edge.setExpiricy(edge_event.timestamp + WINDOW_SIZE);
+            StreamingGraphTuple sgt = new StreamingGraphTuple(edge);
+
+            this.streamingGraph.updateStreamingGraph(sgt);
             
+            for (Pair<Label, Label> query : this.queries) {
+                StreamingGraph queryResult = spathProcessor.apply(
+                    new Tuple4<>(
+                        new IndexPath(),
+                        this.streamingGraph,
+                        query.first(),
+                        query.second()
+                    )
+                );
+                this.results.put(
+                    query.second().l,
+                    queryResult
+                );
+            }
             // Downstream to output for printing
             out.collect(
-                "ADD    " + edge.getStartTime_ms() + ", " + edge.getExpiricy_ms()  +
+                "ADD    " + edge.getStartTime() + ", " + edge.getExpiricy()  +
                 " | watermark=" +
                 context.timerService().currentWatermark()
             );
 
             // Register expiration timer to call onTimer when currentWatermark >= expirationTimer
-            context.timerService().registerEventTimeTimer(edge.getExpiricy_ms());
+            context.timerService().registerEventTimeTimer(edge.getExpiricy());
         }
 
         @Override
@@ -72,32 +93,30 @@ public class StreamProcessor {
             long timestamp,
             OnTimerContext context,
             Collector<String> out) throws Exception {
-            // Timer triggered when currentWatermark >= expirationTimer
-            ArrayList<Edge> remaining  = new ArrayList<>();
-            for (Edge e: graph.get()){
-                if (e.getExpiricy_ms() <= timestamp) {
-                    // Expire edge
+            Iterator<StreamingGraphTuple> iterator = this.streamingGraph.getTuples().iterator();
+            while (iterator.hasNext()) {
+                StreamingGraphTuple tuple = iterator.next();
+                if (tuple.getExpiricy() <= timestamp) {
                     out.collect(
-                        "REMOVE " + e.getStartTime_ms() + ", " + e.getExpiricy_ms() +
+                        "REMOVE " + tuple.getStartTime() + ", " + tuple.getExpiricy() +
                         " | watermark=" +
                         context.timerService().currentWatermark()
                     );
+                    iterator.remove();
                 } else {
-                    // Keep edge
-                    remaining.add(e);
+                    // Arrêter l'itération dès qu'un tuple non expiré est trouvé
+                    break;
                 }
             }
-            // Update state
-            graph.update(remaining);
         }
     }
-
-    public StreamProcessor(long window_size, int watermarkDelta) {
+    public StreamProcessor(long window_size, int watermarkDelta, List<Pair<Label, Label>> queries, int stream_port) {
         this.env = StreamExecutionEnvironment.getExecutionEnvironment();
         this.env.setParallelism(1);
         this.env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
+        this.queryProcessor = new QueryProcessor(window_size, queries);
 
-        DataStream<String> socketStream = this.env.socketTextStream("localhost", 8080);
+        DataStream<String> socketStream = this.env.socketTextStream("localhost", stream_port);
 
         // this.streamGraph =  
                             // env.fromSource(
@@ -108,7 +127,7 @@ public class StreamProcessor {
                             
                                 // WatermarkStrategy // Sets up time for expiration given edge start times and lateness available
                                 //     .<Edge>forBoundedOutOfOrderness(Duration.ofMillis(watermarkDelta))
-                                //     .withTimestampAssigner((edge, ts) -> edge.getStartTime_ms())
+                                //     .withTimestampAssigner((edge, ts) -> edge.getStartTime())
                                 // ,
                                 // "CSV Test Source"
                             // );
@@ -120,7 +139,7 @@ public class StreamProcessor {
             .<EdgeEventFormat>forBoundedOutOfOrderness(Duration.ofMillis(watermarkDelta))
             .withTimestampAssigner((event, ts) -> event.timestamp))
         .keyBy(edge -> 0)
-        .process(new GraphExpirer(window_size))
+        .process(this.queryProcessor)
         .print();
         // .map(MyEvent::new).process(new ProcessFunction<MyEvent, String>() {
         //     @Override
@@ -131,13 +150,13 @@ public class StreamProcessor {
         // this.streamGraph.process(new ProcessFunction<Edge, Edge>() {
         //     @Override
         //     public void processElement(Edge edge, Context ctx, Collector<Edge> out) {
-        //         System.out.println("EDGE: " + edge.getStartTime_ms() + " | WM=" + ctx.timerService().currentWatermark());
+        //         System.out.println("EDGE: " + edge.getStartTime() + " | WM=" + ctx.timerService().currentWatermark());
         //         out.collect(edge);
         //     }
         // });
             //.assignTimestampsAndWatermarks(watermarkStrategy)
             // .keyBy(edge -> 0)
-            // .process(new GraphExpirer(window_size))
+            // .process(new QueryProcessor(window_size))
             // .print();
     }
 

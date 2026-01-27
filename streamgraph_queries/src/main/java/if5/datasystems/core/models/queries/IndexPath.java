@@ -2,8 +2,6 @@ package if5.datasystems.core.models.queries;
 
 import if5.datasystems.core.models.aliases.Pair;
 import if5.datasystems.core.models.aliases.State;
-
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,17 +27,26 @@ import lombok.Data;
   public boolean contains(String rootName){
     return this.indexPath.containsKey(rootName);
   }
-  
-  public ArrayList<SpanningTree> expandableTrees(Pair<String,State> searchNodeKey, Instant t){
-    ArrayList<SpanningTree> treesWithSearchNode = new ArrayList<>();
-    for(Map.Entry e : this.indexPath.entrySet()){
-      SpanningTree Ts = (SpanningTree) e.getValue();
-      IndexNode searchedNode = Ts.getNode(searchNodeKey);
-      Instant searchedTs = searchedNode.getStartTime();
-      Instant searchedExp = searchedNode.getExpiricy();
-      if(searchedNode == null || (searchedTs.isBefore(t) && searchedExp.isAfter(t))){continue;} // Is exp open? In that case ouch, to change
-      treesWithSearchNode.add(Ts);
+
+  public ArrayList<SpanningTree> expandableTrees(Pair<String, State> searchNodeKey, long t) {
+    ArrayList<SpanningTree> result = new ArrayList<>();
+    for (SpanningTree tree : indexPath.values()) {
+      IndexNode node = tree.getNode(searchNodeKey);
+
+      if (node == null) {
+        continue;
+      }
+
+      long start = node.getStartTime();
+      long exp = node.getExpiricy();
+
+      if (t < start || t > exp) {
+        continue;
+      }
+
+      result.add(tree);
     }
-    return treesWithSearchNode;
+    return result;
   }
+
 }

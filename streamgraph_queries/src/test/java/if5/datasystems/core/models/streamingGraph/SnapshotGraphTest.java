@@ -17,17 +17,17 @@ public class SnapshotGraphTest {
     @Test
     void testSetAndGetEdgesAndTimestamp() {
         Label lbl = new Label("snap");
-        Edge e = new Edge("S1", "T1", lbl, Instant.parse("2026-01-01T05:00:00Z"), null);
+        Edge e = new Edge("S1", "T1", lbl, 5*3600000L, 0);
 
         List<Edge> edges = new ArrayList<>();
         edges.add(e);
 
         SnapshotGraph snap = new SnapshotGraph();
         snap.setEdges(edges);
-        snap.setTimestamp(Instant.parse("2026-01-01T05:00:00Z"));
+        snap.setTimestamp(5*3600000L);
 
         assertEquals(1, snap.getEdges().size());
         assertEquals(e, snap.getEdges().get(0));
-        assertEquals(Instant.parse("2026-01-01T05:00:00Z"), snap.getTimestamp());
+        assertEquals(5*3600000L, snap.getTimestamp());
     }
 }
