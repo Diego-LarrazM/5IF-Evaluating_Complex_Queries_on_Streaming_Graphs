@@ -1,6 +1,5 @@
 package if5.datasystems.core.models.streamingGraph;
 
-import java.time.Instant;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -51,7 +50,7 @@ import lombok.Data;
     while(i-- >0) {
         StreamingGraphTuple currentTuple = this.tuples.get(i);
         // Insérer dans la bonne position en fonction de la date d'expiration
-        if (sgt.getRepr().getExpiricy().isBefore(currentTuple.getRepr().getExpiricy())) {
+        if (sgt.getRepr().getExpiricy() < currentTuple.getRepr().getExpiricy()) {
             this.tuples.add(i, sgt);
             inserted = true;
             break;

@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
-import java.time.Instant;
 import java.util.ArrayList;
 
 import if5.datasystems.core.models.aliases.Label;
@@ -45,7 +44,7 @@ public class SPath implements Function<Tuple4<IndexPath, StreamingGraph, Label, 
         String w = e.getTarget();
         if(T.contains(w,q)){
           IndexNode possibleNewChild = T.getNode(w,q);
-          if (possibleNewChild.getExpiricy().isBefore(TimeOps.minTime(child.getExpiricy(), e.getExpiricy()))){
+          if (possibleNewChild.getExpiricy() < TimeOps.minTime(child.getExpiricy(), e.getExpiricy())){
             results.addAll(Propagate(T, childKey, new Pair<>(w,q), e, automaton, S, outputLabel));
           }
         }
@@ -77,7 +76,7 @@ public class SPath implements Function<Tuple4<IndexPath, StreamingGraph, Label, 
           if (q == null) continue;
           String w = e.getTarget();
           IndexNode possibleNewChild = T.getNode(w,q);
-          if (possibleNewChild.getExpiricy().isBefore(TimeOps.minTime(child.getExpiricy(), e.getExpiricy()))){
+          if (possibleNewChild.getExpiricy() < TimeOps.minTime(child.getExpiricy(), e.getExpiricy())){
             results.addAll(Propagate(T, childKey, new Pair<>(w,q), e, automaton, S, outputLabel));
           }
         }
@@ -94,8 +93,8 @@ public class SPath implements Function<Tuple4<IndexPath, StreamingGraph, Label, 
       String u = edge.getSource();
       String v = edge.getTarget();
       Label l = edge.getLabel();
-      Instant ts = edge.getStartTime();
-      Instant exp = edge.getExpiricy();
+      long ts = edge.getStartTime();
+      long exp = edge.getExpiricy();
 
       for (State s : automaton.getStates()) {
         State t = automaton.transition(s, l);
@@ -117,7 +116,7 @@ public class SPath implements Function<Tuple4<IndexPath, StreamingGraph, Label, 
           }
           else {
             IndexNode existingChildNode =  Tu.getNode(childKey);
-            if (existingChildNode.getExpiricy().isBefore(edge.getExpiricy())) {
+            if (existingChildNode.getExpiricy() < edge.getExpiricy()) {
               results.addAll(Propagate(Tu, parentKey, childKey, edge, automaton, S, outputLabel));
             }
           }
@@ -131,8 +130,8 @@ public class SPath implements Function<Tuple4<IndexPath, StreamingGraph, Label, 
           else {
             IndexNode parentNode = Tx.getNode(u, s);
             IndexNode existingChild = Tx.getNode(v, t);
-            Instant minExp = TimeOps.minTime(parentNode.getExpiricy(), edge.getExpiricy());
-            if (existingChild.getExpiricy().isBefore(minExp)) {
+            long minExp = TimeOps.minTime(parentNode.getExpiricy(), edge.getExpiricy());
+            if (existingChild.getExpiricy() < minExp) {
               results.addAll(Propagate(Tx, parentKey, childKey, edge, automaton, S, outputLabel));
             }
           }

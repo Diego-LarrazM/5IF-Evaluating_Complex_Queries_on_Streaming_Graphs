@@ -48,8 +48,8 @@ class IndexPathTest {
         path.createTree(root);
         SpanningTree tree = path.getTree("root");
 
-        Instant start = Instant.now().minusSeconds(10);
-        Instant end = Instant.now().plusSeconds(10);
+        long start = Instant.now().minusSeconds(10).toEpochMilli();
+        long end = Instant.now().plusSeconds(10).toEpochMilli();
 
         IndexNode searchNode =
                 new IndexNode("n1", state, start, end);
@@ -59,7 +59,7 @@ class IndexPathTest {
         Pair<String, State> key =
                 new Pair<>("n1", state);
 
-        Instant t = Instant.now();
+        long t = Instant.now().toEpochMilli();
 
         ArrayList<SpanningTree> result =
                 path.expandableTrees(key, t);
@@ -78,8 +78,8 @@ class IndexPathTest {
         path.createTree(root);
         SpanningTree tree = path.getTree("root");
 
-        Instant start = Instant.now().minusSeconds(20);
-        Instant end = Instant.now().minusSeconds(10);
+        long start = Instant.now().minusSeconds(20).toEpochMilli();
+        long end = Instant.now().minusSeconds(10).toEpochMilli();
 
         IndexNode searchNode =
                 new IndexNode("n1", state, start, end);
@@ -89,7 +89,7 @@ class IndexPathTest {
         Pair<String, State> key =
                 new Pair<>("n1", state);
 
-        Instant t = Instant.now();
+        long t = Instant.now().toEpochMilli();
 
         ArrayList<SpanningTree> result =
                 path.expandableTrees(key, t);
@@ -113,17 +113,19 @@ class IndexPathTest {
         path.createTree(root2);
         SpanningTree t2 = path.getTree("root2");
 
-        Instant now = Instant.now();
+        long now = Instant.now().toEpochMilli();
 
         IndexNode validNode =
                 new IndexNode("n", state,
-                        now.minusSeconds(5),
-                        now.plusSeconds(5));
+                        Instant.now().minusSeconds(5).toEpochMilli(),
+                        Instant.now().plusSeconds(5).toEpochMilli()
+                );
 
         IndexNode expiredNode =
                 new IndexNode("n", state,
-                        now.minusSeconds(20),
-                        now.minusSeconds(10));
+                        Instant.now().minusSeconds(20).toEpochMilli(),
+                        Instant.now().minusSeconds(10).toEpochMilli()
+                );
 
         t1.addNode(validNode);
         t2.addNode(expiredNode);
@@ -151,7 +153,7 @@ class IndexPathTest {
                 new Pair<>("missing", state);
 
         ArrayList<SpanningTree> result =
-                path.expandableTrees(missingKey, Instant.now());
+                path.expandableTrees(missingKey, Instant.now().toEpochMilli());
 
         assertTrue(result.isEmpty());
     }

@@ -26,8 +26,7 @@ public class StreamingGraphTest {
     @Test
     void testUpdateStreamingGraphCoalescesTuples() {
         Label lbl = new Label("co");
-        Edge repr = new Edge("P", "Q", lbl,
-                Instant.parse("2026-01-01T03:00:00Z"), Instant.parse("2026-01-02T03:00:00Z"));
+        Edge repr = new Edge("P", "Q", lbl, 3*3600000L, 3*3600000L);
 
         StreamingGraphTuple t1 = new StreamingGraphTuple();
         t1.setRepr(repr);

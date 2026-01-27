@@ -37,8 +37,8 @@ class PathTreeTest {
     @Test
     void testPathTreeSingleHop() {
         State state = new State("S");
-        Instant start = Instant.now().minusSeconds(10);
-        Instant end = Instant.now().plusSeconds(10);
+        long start = Instant.now().minusSeconds(10).toEpochMilli();
+        long end = Instant.now().plusSeconds(10).toEpochMilli();
 
         IndexNode root = new IndexNode("A", state);
         SpanningTree tree = new SpanningTree(root);
@@ -73,9 +73,9 @@ class PathTreeTest {
     @Test
     void testPathTreeMultiHopPath() {
         State state = new State("S");
-        Instant t1 = Instant.now().minusSeconds(30);
-        Instant t2 = Instant.now().minusSeconds(20);
-        Instant t3 = Instant.now().plusSeconds(20);
+        long t1 = Instant.now().minusSeconds(30).toEpochMilli();
+        long t2 = Instant.now().minusSeconds(20).toEpochMilli();
+        long t3 = Instant.now().plusSeconds(20).toEpochMilli();
 
         IndexNode root = new IndexNode("A", state);
         SpanningTree tree = new SpanningTree(root);

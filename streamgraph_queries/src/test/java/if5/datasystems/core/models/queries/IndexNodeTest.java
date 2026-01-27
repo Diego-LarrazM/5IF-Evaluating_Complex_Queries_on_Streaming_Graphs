@@ -6,9 +6,9 @@ import if5.datasystems.core.models.aliases.State;
 
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.time.Instant;
 
 class IndexNodeTest {
 
@@ -20,8 +20,8 @@ class IndexNodeTest {
 
         assertEquals("node1", node.getName());
         assertEquals(state, node.getState());
-        assertNull(node.getStartTime());
-        assertNull(node.getExpiricy());
+        assertEquals(0L,node.getStartTime());
+        assertEquals(0L,node.getExpiricy());
         assertNull(node.getParent());
         assertNull(node.getFromLabel());
     }
@@ -29,8 +29,8 @@ class IndexNodeTest {
     @Test
     void testFullConstructor() {
         State state = new State("ACTIVE");
-        Instant start = Instant.now();
-        Instant end = start.plusSeconds(60);
+        long start = Instant.now().toEpochMilli();
+        long end = Instant.now().plusSeconds(60).toEpochMilli();
 
         IndexNode node = new IndexNode("node1", state, start, end);
 
@@ -91,13 +91,13 @@ class IndexNodeTest {
 
         IndexNode n1 =
                 new IndexNode("node1", state,
-                        Instant.now(),
-                        Instant.now().plusSeconds(10));
+                        Instant.now().toEpochMilli(),
+                        Instant.now().plusSeconds(10).toEpochMilli());
 
         IndexNode n2 =
                 new IndexNode("node1", state,
-                        Instant.now().minusSeconds(100),
-                        Instant.now().plusSeconds(500));
+                        Instant.now().minusSeconds(100).toEpochMilli(),
+                        Instant.now().plusSeconds(500).toEpochMilli());
 
         assertEquals(n1, n2);
     }

@@ -1,6 +1,5 @@
 package if5.datasystems.core.processors;
 
-import java.time.Instant;
 import java.util.ArrayList;
 
 import if5.datasystems.core.models.aliases.Label;
@@ -13,16 +12,15 @@ import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 
 public class AlgebraFunctions {
-    public static StreamingGraph Snapshot(StreamingGraph S, Instant snapTime){
+    public static StreamingGraph Snapshot(StreamingGraph S, long snapTime){
         StreamingGraph resultGraph = new StreamingGraph();
-        long t = snapTime.toEpochMilli();
         
         for (StreamingGraphTuple tuple : S.getTuples())
         {
-            long ts = tuple.getStartTime_ms();
-            long exp = tuple.getExpiricy_ms();
+            long ts = tuple.getStartTime();
+            long exp = tuple.getExpiricy();
 
-            if (ts <= t && t < exp)
+            if (ts <= snapTime && snapTime < exp)
             {
                 resultGraph.add(tuple);
             }
@@ -66,17 +64,6 @@ public class AlgebraFunctions {
                 currentNode.getStartTime(),
                 currentNode.getExpiricy()
             );
-
-            // if(currentLabel == null || e.getLabel().equals(currentLabel)){
-            //     edges.addFirst(e);
-            // }
-            // else
-            // {
-            //     resultGraph.add(buildSGT(edges));
-            //     edges = new ArrayList<>();
-            //     edges.add(e);
-            //     currentLabel=e.getLabel();
-            // }
             edges.addFirst(e);
 
             currentNode = parent;

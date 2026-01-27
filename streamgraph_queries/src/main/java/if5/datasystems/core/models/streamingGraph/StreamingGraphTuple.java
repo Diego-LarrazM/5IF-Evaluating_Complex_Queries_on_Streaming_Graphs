@@ -1,6 +1,5 @@
 package if5.datasystems.core.models.streamingGraph;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Comparator;
@@ -59,29 +58,31 @@ import lombok.Data;
       return repr.hashCode();
   }
 
-  public long getStartTime_ms(){
-    return this.repr.getStartTime_ms();
+  public long getStartTime(){
+    return this.repr.getStartTime();
   }
-  public long getExpiricy_ms(){
-    return this.repr.getExpiricy_ms();
+  public long getExpiricy(){
+    return this.repr.getExpiricy();
   }
 
   public StreamingGraphTuple mergeTuple(StreamingGraphTuple sgt) {
     Edge e = this.repr;
     e.setStartTime(
-      Instant.ofEpochMilli(Math.min(
-        e.getStartTime_ms(),
-        sgt.getStartTime_ms())));
+      Math.min(
+        e.getStartTime(),
+        sgt.getStartTime())
+      );
     e.setExpiricy(
-      Instant.ofEpochMilli(Math.max(
-        e.getExpiricy_ms(),
-        sgt.getExpiricy_ms())));
+      Math.max(
+        e.getExpiricy(),
+        sgt.getExpiricy())
+      );
       
     return new StreamingGraphTuple(e);
   }
 
   public static final Comparator<StreamingGraphTuple> BY_EXPIRICY = Comparator
-        .comparing((StreamingGraphTuple t) -> t.getExpiricy_ms())
+        .comparing((StreamingGraphTuple t) -> t.getExpiricy())
         .thenComparing(t -> t.getRepr().toString())
         .thenComparing(t -> t.getContent().size()); // this can still give an error if same repr and same exp and same content size but diff content, rare case
 }

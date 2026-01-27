@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -58,7 +57,7 @@ class EdgeStreamFormatTest {
         assertEquals("A", edge.getSource());
         assertEquals("B", edge.getTarget());
         assertEquals(new Label("L1"), edge.getLabel());
-        assertEquals(Instant.ofEpochMilli(ts), edge.getStartTime());
+        assertEquals(ts, edge.getStartTime());
 
         assertNull(reader.read()); // EOF
         reader.close();
@@ -106,7 +105,7 @@ class EdgeStreamFormatTest {
         assertEquals("A", edge.getSource());
         assertEquals("B", edge.getTarget());
         assertEquals(new Label("L"), edge.getLabel());
-        assertEquals(42L, edge.getStartTime().toEpochMilli());
+        assertEquals(42L, edge.getStartTime());
 
         reader.close();
     }

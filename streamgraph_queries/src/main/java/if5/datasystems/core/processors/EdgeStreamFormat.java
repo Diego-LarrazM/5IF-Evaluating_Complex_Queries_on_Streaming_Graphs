@@ -13,7 +13,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.time.Instant;
 
 public class EdgeStreamFormat implements StreamFormat<Edge> {
 
@@ -45,7 +44,7 @@ public class EdgeStreamFormat implements StreamFormat<Edge> {
                     parts[0].trim(),
                     parts[1].trim(),
                     new Label(parts[2].trim()),
-                    Instant.ofEpochMilli(Long.parseLong(parts[3].trim()))
+                    Long.parseLong(parts[3].trim())
                 );
             }
 

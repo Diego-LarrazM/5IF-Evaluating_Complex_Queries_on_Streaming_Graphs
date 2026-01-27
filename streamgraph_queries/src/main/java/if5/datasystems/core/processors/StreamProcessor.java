@@ -6,7 +6,6 @@ import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 
 import if5.datasystems.core.models.streamingGraph.Edge;
 
-import java.time.Instant;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +58,7 @@ public class StreamProcessor {
 
             // Update State
             Edge edge = edge_event.edge;
-            edge.setExpiricy(Instant.ofEpochMilli(edge_event.timestamp + WINDOW_SIZE));
+            edge.setExpiricy(edge_event.timestamp + WINDOW_SIZE);
             StreamingGraphTuple sgt = new StreamingGraphTuple(edge);
 
             this.streamingGraph.updateStreamingGraph(sgt);
@@ -80,13 +79,13 @@ public class StreamProcessor {
             }
             // Downstream to output for printing
             out.collect(
-                "ADD    " + edge.getStartTime_ms() + ", " + edge.getExpiricy_ms()  +
+                "ADD    " + edge.getStartTime() + ", " + edge.getExpiricy()  +
                 " | watermark=" +
                 context.timerService().currentWatermark()
             );
 
             // Register expiration timer to call onTimer when currentWatermark >= expirationTimer
-            context.timerService().registerEventTimeTimer(edge.getExpiricy_ms());
+            context.timerService().registerEventTimeTimer(edge.getExpiricy());
         }
 
         @Override
@@ -97,9 +96,9 @@ public class StreamProcessor {
             Iterator<StreamingGraphTuple> iterator = this.streamingGraph.getTuples().iterator();
             while (iterator.hasNext()) {
                 StreamingGraphTuple tuple = iterator.next();
-                if (tuple.getExpiricy_ms() <= timestamp) {
+                if (tuple.getExpiricy() <= timestamp) {
                     out.collect(
-                        "REMOVE " + tuple.getStartTime_ms() + ", " + tuple.getExpiricy_ms() +
+                        "REMOVE " + tuple.getStartTime() + ", " + tuple.getExpiricy() +
                         " | watermark=" +
                         context.timerService().currentWatermark()
                     );
@@ -128,7 +127,7 @@ public class StreamProcessor {
                             
                                 // WatermarkStrategy // Sets up time for expiration given edge start times and lateness available
                                 //     .<Edge>forBoundedOutOfOrderness(Duration.ofMillis(watermarkDelta))
-                                //     .withTimestampAssigner((edge, ts) -> edge.getStartTime_ms())
+                                //     .withTimestampAssigner((edge, ts) -> edge.getStartTime())
                                 // ,
                                 // "CSV Test Source"
                             // );
@@ -151,7 +150,7 @@ public class StreamProcessor {
         // this.streamGraph.process(new ProcessFunction<Edge, Edge>() {
         //     @Override
         //     public void processElement(Edge edge, Context ctx, Collector<Edge> out) {
-        //         System.out.println("EDGE: " + edge.getStartTime_ms() + " | WM=" + ctx.timerService().currentWatermark());
+        //         System.out.println("EDGE: " + edge.getStartTime() + " | WM=" + ctx.timerService().currentWatermark());
         //         out.collect(edge);
         //     }
         // });
