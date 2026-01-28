@@ -1,7 +1,11 @@
 package if5.datasystems.core.processors;
 
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.nio.file.Paths;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -12,6 +16,7 @@ import if5.datasystems.core.models.streamingGraph.Edge;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Iterator;
 
 import org.apache.flink.api.common.RuntimeExecutionMode;
@@ -106,27 +111,28 @@ public class StreamProcessor {
             eventCounter++;
 
             if (eventCounter % SERIALIZE_EVERY == 0) {
-                try (ObjectOutputStream oos = new ObjectOutputStream(
-                        new FileOutputStream("results_" + eventCounter + ".ser"))) {
+                String fileName = "results_" + eventCounter + ".txt";
+                try (PrintWriter writer = new PrintWriter(new FileWriter(fileName))) {
 
-                    oos.writeObject(this.results);
-                    oos.flush();
+                    // --- write the results in human-readable form ---
+                    writer.println("=== RESULTS AT EVENT #" + eventCounter + " ===");
+                    writer.println(this.results.toString());  // assuming results.toString() is meaningful
 
-                    System.out.println("Serialized results at event #" + eventCounter);
+                    // --- write average time per query ---
+                    writer.println("\n=== QUERY TIME METRICS ===");
+                    for (Label label : totalQueryTimeNs.keySet()) {
+                        long totalNs = totalQueryTimeNs.get(label);
+                        int count = queryCount.getOrDefault(label, 1); // safety
+                        double avgMs = totalNs / 1_000_000.0 / count;
 
-                } catch (Exception e) {
+                        writer.printf("Query %s avg time: %.3f ms over %d runs%n",
+                                label, avgMs, count);
+                    }
+
+                    System.out.println("Saved human-readable results at " + fileName);
+
+                } catch (IOException e) {
                     e.printStackTrace();
-                }
-
-                // --- optional: print avg time per query for logging ---
-                for (Label label : totalQueryTimeNs.keySet()) {
-                    long totalNs = totalQueryTimeNs.get(label);
-                    int count = queryCount.getOrDefault(label, 1); // safety
-                    double avgMs = totalNs / 1_000_000.0 / count;
-
-                    System.out.println(
-                            "Query " + label + " avg time: " + avgMs + " ms over " + count + " runs"
-                    );
                 }
             }
             // Downstream to output for printing

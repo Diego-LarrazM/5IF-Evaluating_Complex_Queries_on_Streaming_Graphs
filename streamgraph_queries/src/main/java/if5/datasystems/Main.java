@@ -26,7 +26,7 @@ public class Main {
         queries.add(
             new Pair<>(
                 new Label("a2q*"),
-                new Label("manyA")
+                new Label("Q1")
             )
         );
 
@@ -34,7 +34,7 @@ public class Main {
         queries.add(
             new Pair<>(
                 new Label("c2q,a2q*"),
-                new Label("aManyB")
+                new Label("Q2" )
             )
         );
 
@@ -42,7 +42,7 @@ public class Main {
         queries.add(
             new Pair<>(
                 new Label("c2a,c2q*,a2q*"),
-                new Label("aManyBThenCMaybe")
+                new Label("Q3" )
             )
         );
 
