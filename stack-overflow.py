@@ -19,9 +19,9 @@ def start_server(port):
 
     try:
         files = {
-            "a2q": "./datasets/sx-stackoverflow-a2q",
-            "c2q": "./datasets/sx-stackoverflow-c2q",
-            "c2a": "./datasets/sx-stackoverflow-c2a"
+            "a2q": "./datasets/sx-stackoverflow-a2q.txt",
+            "c2q": "./datasets/sx-stackoverflow-c2q.txt",
+            "c2a": "./datasets/sx-stackoverflow-c2a.txt"
         }
         
         maxLines = 1000
@@ -52,7 +52,7 @@ def start_server(port):
                     event = f"{src};{dst};{label};{ts}\n"
                     conn.sendall(event.encode('utf-8'))
                     print(f"PYTHON: Sent: {event.strip()}")
-                    time.sleep(1)  # optional delay between events
+                    time.sleep(0.5)  # optional delay between events
                     
                 lines += 1 # Set a limit for testing
                 if lines >= maxLines:
@@ -65,8 +65,8 @@ def start_server(port):
         server_socket.close()
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: python stream_source.py <port> <csv_file>")
+    if len(sys.argv) < 2:
+        print("Usage: python stream_source.py <port>")
         sys.exit(1)
     
     port = int(sys.argv[1])

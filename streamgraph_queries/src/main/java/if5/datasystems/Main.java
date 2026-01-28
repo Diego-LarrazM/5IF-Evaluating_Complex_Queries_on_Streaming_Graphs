@@ -19,7 +19,7 @@ import if5.datasystems.core.models.streamingGraph.Edge;
 public class Main {
     
     public static void main(String[] args) {
-        long windowSize = 60000; // 1 minute window
+        long windowSize = 3600*24*1; // 1 day window
         ArrayList<Pair<Label, Label>> queries = new ArrayList<>();
 
         // a*
@@ -46,7 +46,7 @@ public class Main {
             )
         );
 
-        StreamProcessor processor = new StreamProcessor(windowSize, 0, queries, 9999);
+        StreamProcessor processor = new StreamProcessor(windowSize, 0, queries, 8080);
         try {
             processor.execute("Stream Graph Processor");
         } catch (Exception e) {
