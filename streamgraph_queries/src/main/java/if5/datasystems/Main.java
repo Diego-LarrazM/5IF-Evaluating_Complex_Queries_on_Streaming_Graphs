@@ -1,7 +1,4 @@
 package if5.datasystems;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.sql.Time;
 import java.time.Instant;
 import java.util.ArrayList;
