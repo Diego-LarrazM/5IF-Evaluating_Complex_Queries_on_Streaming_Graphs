@@ -5,8 +5,6 @@ import if5.datasystems.core.models.streamingGraph.Edge;
 import if5.datasystems.core.processors.EdgeEventFormat;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class EdgeEventFormatTest {
@@ -27,7 +25,7 @@ class EdgeEventFormatTest {
         assertEquals("A", edge.getSource());
         assertEquals("B", edge.getTarget());
         assertEquals(new Label("L1"), edge.getLabel());
-        assertEquals(Instant.ofEpochMilli(ts), edge.getStartTime());
+        assertEquals(ts, edge.getStartTime());
     }
 
     @Test
@@ -43,7 +41,7 @@ class EdgeEventFormatTest {
         assertEquals("B", edge.getTarget());
         assertEquals(new Label("LABEL_X"), edge.getLabel());
         assertEquals(ts, event.timestamp);
-        assertEquals(Instant.ofEpochMilli(ts), edge.getStartTime());
+        assertEquals(ts, edge.getStartTime());
     }
 
     @Test
@@ -55,7 +53,7 @@ class EdgeEventFormatTest {
 
         assertEquals(
                 event.timestamp,
-                event.edge.getStartTime().toEpochMilli()
+                event.edge.getStartTime()
         );
     }
 
@@ -65,7 +63,7 @@ class EdgeEventFormatTest {
 
         EdgeEventFormat event = new EdgeEventFormat(input);
 
-        assertNull(event.edge.getExpiricy());
+        assertEquals(0L, event.edge.getExpiricy());
     }
 
     @Test

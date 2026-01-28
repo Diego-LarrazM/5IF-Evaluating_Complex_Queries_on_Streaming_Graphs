@@ -2,8 +2,6 @@ package if5.datasystems.core.models.queries;
 
 import if5.datasystems.core.models.aliases.Pair;
 import if5.datasystems.core.models.aliases.State;
-
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +28,7 @@ import lombok.Data;
     return this.indexPath.containsKey(rootName);
   }
 
-  public ArrayList<SpanningTree> expandableTrees(Pair<String, State> searchNodeKey, Instant t) {
+  public ArrayList<SpanningTree> expandableTrees(Pair<String, State> searchNodeKey, long t) {
     ArrayList<SpanningTree> result = new ArrayList<>();
     for (SpanningTree tree : indexPath.values()) {
       IndexNode node = tree.getNode(searchNodeKey);
@@ -39,13 +37,10 @@ import lombok.Data;
         continue;
       }
 
-      Instant start = node.getStartTime();
-      Instant exp = node.getExpiricy();
+      long start = node.getStartTime();
+      long exp = node.getExpiricy();
 
-      if (start != null && t.isBefore(start)) {
-        continue;
-      }
-      if (exp != null && !t.isBefore(exp)) {
+      if (t < start || t > exp) {
         continue;
       }
 

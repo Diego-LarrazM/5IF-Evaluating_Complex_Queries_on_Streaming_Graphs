@@ -1,7 +1,5 @@
 package if5.datasystems.core.processors;
 
-import java.time.Instant;
-
 import if5.datasystems.core.models.aliases.Label;
 import if5.datasystems.core.models.streamingGraph.Edge;
 
@@ -18,7 +16,7 @@ public class EdgeEventFormat {
             parts[0].trim(),
             parts[1].trim(),
             new Label(parts[2].trim()),
-            Instant.ofEpochMilli(this.timestamp)
+            this.timestamp
         );
     }
 }

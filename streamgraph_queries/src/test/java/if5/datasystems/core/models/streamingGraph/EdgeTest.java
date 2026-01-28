@@ -14,8 +14,8 @@ public class EdgeTest {
     @Test
     void testEdgeSettersAndGetters() {
         Label lbl = new Label("knows"); // ...assumes simple Label constructor
-        Instant start = Instant.parse("2026-01-01T10:00:00Z");
-        Instant end = Instant.parse("2026-01-01T11:00:00Z");
+        long start = 10*3600000L;
+        long end = 11*3600000L;
 
         Edge e = new Edge();
         e.setSource("A");
@@ -34,8 +34,8 @@ public class EdgeTest {
     @Test
     void testEqualsAndHashCodeSameValues() {
         Label lbl = new Label("likes");
-        Edge e1 = new Edge("X", "Y", lbl, Instant.parse("2026-01-01T00:00:00Z"), Instant.parse("2026-01-01T00:10:00Z"));
-        Edge e2 = new Edge("X", "Y", lbl, Instant.parse("2026-01-01T00:05:00Z"), Instant.parse("2026-01-01T00:15:00Z"));
+        Edge e1 = new Edge("X", "Y", lbl, 0L, 600000L);
+        Edge e2 = new Edge("X", "Y", lbl, 300000L, 900000L);
 
         // equals compares source, target and label only
         assertEquals(e1, e2);
@@ -46,8 +46,8 @@ public class EdgeTest {
     void testNotEqualsDifferentLabel() {
         Label lbl1 = new Label("a");
         Label lbl2 = new Label("b");
-        Edge e1 = new Edge("S", "T", lbl1, Instant.parse("2026-01-01T00:00:00Z"), null);
-        Edge e2 = new Edge("S", "T", lbl2, Instant.parse("2026-01-01T00:00:00Z"), null);
+        Edge e1 = new Edge("S", "T", lbl1, 0L, 0L);
+        Edge e2 = new Edge("S", "T", lbl2, 0L, 0L);
 
         assertNotEquals(e1, e2);
     }
@@ -55,8 +55,8 @@ public class EdgeTest {
     @Test
     void testNotEqualsDifferentEndpoints() {
         Label lbl = new Label("r");
-        Edge e1 = new Edge("U", "V", lbl, Instant.parse("2026-01-01T00:00:00Z"), null);
-        Edge e2 = new Edge("U", "W", lbl, Instant.parse("2026-01-01T00:00:00Z"), null);
+        Edge e1 = new Edge("U", "V", lbl, 0L, 0L);
+        Edge e2 = new Edge("U", "W", lbl, 0L, 0L);
 
         assertNotEquals(e1, e2);
     }

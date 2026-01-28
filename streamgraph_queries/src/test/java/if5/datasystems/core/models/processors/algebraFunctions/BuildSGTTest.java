@@ -40,8 +40,8 @@ class BuildSGTTest {
 
     @Test
     void testBuildSGTSingleEdge() throws Exception {
-        Instant start = Instant.now().minusSeconds(10);
-        Instant end = Instant.now().plusSeconds(10);
+        long start = Instant.now().minusSeconds(10).toEpochMilli();
+        long end = Instant.now().plusSeconds(10).toEpochMilli();
 
         Edge e = new Edge("A", "B", new Label("L1"), start, end);
         ArrayList<Edge> edges = new ArrayList<>(List.of(e));
@@ -65,9 +65,9 @@ class BuildSGTTest {
 
     @Test
     void testBuildSGTMultipleEdges() throws Exception {
-        Instant t1 = Instant.now().minusSeconds(30);
-        Instant t2 = Instant.now().minusSeconds(20);
-        Instant t3 = Instant.now().plusSeconds(20);
+        long t1 = Instant.now().minusSeconds(30).toEpochMilli();
+        long t2 = Instant.now().minusSeconds(20).toEpochMilli();
+        long t3 = Instant.now().plusSeconds(20).toEpochMilli();
 
         Edge e1 = new Edge("A", "B", new Label("L1"), t1, t3);
         Edge e2 = new Edge("B", "C", new Label("L2"), t2, t3);
@@ -97,7 +97,7 @@ class BuildSGTTest {
 
     @Test
     void testBuildSGTDoesNotAliasEdgeList() throws Exception {
-        Edge e = new Edge("A", "B", new Label("L"), Instant.now(), Instant.now());
+        Edge e = new Edge("A", "B", new Label("L"), Instant.now().toEpochMilli(), Instant.now().toEpochMilli());
         ArrayList<Edge> edges = new ArrayList<>(List.of(e));
 
         StreamingGraphTuple sgt =

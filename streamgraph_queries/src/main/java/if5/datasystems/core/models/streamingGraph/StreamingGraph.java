@@ -3,10 +3,23 @@ package if5.datasystems.core.models.streamingGraph;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import if5.datasystems.core.models.aliases.Label;
 import lombok.Data;
 
 @Data public class StreamingGraph {
   private LinkedList<StreamingGraphTuple> tuples;
+
+  public boolean containsPath(String... nodes) {
+      if (nodes == null || nodes.length < 2) return false;
+
+      for (StreamingGraphTuple tuple : tuples) {
+          if (tuple.isPath(nodes)) {
+              return true;
+          }
+      }
+
+      return false;
+  }
 
   public StreamingGraph(){
     this.tuples =  new LinkedList<>();
@@ -37,7 +50,7 @@ import lombok.Data;
     while(i-- >0) {
         StreamingGraphTuple currentTuple = this.tuples.get(i);
         // Insérer dans la bonne position en fonction de la date d'expiration
-        if (sgt.getRepr().getExpiricy().isBefore(currentTuple.getRepr().getExpiricy())) {
+        if (sgt.getRepr().getExpiricy() < currentTuple.getRepr().getExpiricy()) {
             this.tuples.add(i, sgt);
             inserted = true;
             break;

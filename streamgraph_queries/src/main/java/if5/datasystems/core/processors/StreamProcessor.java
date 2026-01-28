@@ -6,7 +6,6 @@ import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 
 import if5.datasystems.core.models.streamingGraph.Edge;
 
-import java.time.Instant;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +21,8 @@ import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 import if5.datasystems.core.models.aliases.Label;
 import if5.datasystems.core.models.aliases.Pair;
 import if5.datasystems.core.models.aliases.Triple;
+import if5.datasystems.core.models.aliases.Tuple4;
+import if5.datasystems.core.models.queries.IndexPath;
 
 public class StreamProcessor {
 
@@ -57,14 +58,15 @@ public class StreamProcessor {
 
             // Update State
             Edge edge = edge_event.edge;
-            edge.setExpiricy(Instant.ofEpochMilli(edge_event.timestamp + WINDOW_SIZE));
+            edge.setExpiricy(edge_event.timestamp + WINDOW_SIZE);
             StreamingGraphTuple sgt = new StreamingGraphTuple(edge);
 
             this.streamingGraph.updateStreamingGraph(sgt);
             
             for (Pair<Label, Label> query : this.queries) {
                 StreamingGraph queryResult = spathProcessor.apply(
-                    new Triple<>(
+                    new Tuple4<>(
+                        new IndexPath(),
                         this.streamingGraph,
                         query.first(),
                         query.second()
@@ -77,13 +79,13 @@ public class StreamProcessor {
             }
             // Downstream to output for printing
             out.collect(
-                "ADD    " + edge.getStartTime_ms() + ", " + edge.getExpiricy_ms()  +
+                "ADD    " + edge.getStartTime() + ", " + edge.getExpiricy()  +
                 " | watermark=" +
                 context.timerService().currentWatermark()
             );
 
             // Register expiration timer to call onTimer when currentWatermark >= expirationTimer
-            context.timerService().registerEventTimeTimer(edge.getExpiricy_ms());
+            context.timerService().registerEventTimeTimer(edge.getExpiricy());
         }
 
         @Override
@@ -94,9 +96,9 @@ public class StreamProcessor {
             Iterator<StreamingGraphTuple> iterator = this.streamingGraph.getTuples().iterator();
             while (iterator.hasNext()) {
                 StreamingGraphTuple tuple = iterator.next();
-                if (tuple.getExpiricy_ms() <= timestamp) {
+                if (tuple.getExpiricy() <= timestamp) {
                     out.collect(
-                        "REMOVE " + tuple.getStartTime_ms() + ", " + tuple.getExpiricy_ms() +
+                        "REMOVE " + tuple.getStartTime() + ", " + tuple.getExpiricy() +
                         " | watermark=" +
                         context.timerService().currentWatermark()
                     );
