@@ -37,6 +37,12 @@ public class StreamProcessor {
         private HashMap<String, StreamingGraph> results;
         private SPath spathProcessor;
 
+        // Metrics
+        private HashMap<Label, Long> totalQueryTimeNs;
+        private HashMap<Label, Integer> queryCount;
+        private int eventCounter = 0;
+        private final int SERIALIZE_EVERY = 1000;
+
         public QueryProcessor(long windowSize, List<Pair<Label, Label>> queries) {
             this.WINDOW_SIZE = windowSize;
             this.queries = queries;
@@ -47,6 +53,9 @@ public class StreamProcessor {
             this.streamingGraph = new StreamingGraph();
             this.results = new HashMap<>();
             this.spathProcessor = new SPath();
+
+            this.totalQueryTimeNs = new HashMap<>();
+            this.queryCount = new HashMap<>();
         }
 
         @Override
@@ -64,6 +73,7 @@ public class StreamProcessor {
             this.streamingGraph.updateStreamingGraph(sgt);
             
             for (Pair<Label, Label> query : this.queries) {
+                long startTime = System.nanoTime();
                 StreamingGraph queryResult = spathProcessor.apply(
                     new Tuple4<>(
                         new IndexPath(),
@@ -72,11 +82,24 @@ public class StreamProcessor {
                         query.second()
                     )
                 );
+                long duration = System.nanoTime() - startTime;
+                // accumulate total time and count
+                totalQueryTimeNs.put(
+                    query.second(),
+                    totalQueryTimeNs.getOrDefault(query.second(), 0L) + duration
+                );
+                queryCount.put(
+                    query.second(),
+                    queryCount.getOrDefault(query.second(), 0) + 1
+                );
+
                 this.results.put(
                     query.second().l,
                     queryResult
                 );
+                
             }
+            
             // Downstream to output for printing
             out.collect(
                 "ADD    " + edge.getStartTime() + ", " + edge.getExpiricy()  +
