@@ -1,12 +1,13 @@
 package if5.datasystems.core.models.streamingGraph;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Comparator;
 
 import lombok.Data;
 
-@Data public class StreamingGraphTuple {
+@Data public class StreamingGraphTuple implements Serializable {
   private Edge repr;
   private List<Edge> content;
 
@@ -85,4 +86,12 @@ import lombok.Data;
         .comparing((StreamingGraphTuple t) -> t.getExpiricy())
         .thenComparing(t -> t.getRepr().toString())
         .thenComparing(t -> t.getContent().size()); // this can still give an error if same repr and same exp and same content size but diff content, rare case
+
+  @Override
+  public String toString() {
+    return "StreamingGraphTuple{" +
+            "repr=" + repr +
+            ", content=" + content +
+            '}';
+  }
 }

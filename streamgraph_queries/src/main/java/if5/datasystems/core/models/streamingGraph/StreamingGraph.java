@@ -1,12 +1,13 @@
 package if5.datasystems.core.models.streamingGraph;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
 
 import if5.datasystems.core.models.aliases.Label;
 import lombok.Data;
 
-@Data public class StreamingGraph {
+@Data public class StreamingGraph implements Serializable {
   private LinkedList<StreamingGraphTuple> tuples;
 
   public boolean containsPath(String... nodes) {
@@ -61,4 +62,5 @@ import lombok.Data;
         this.tuples.add(sgt);
     }
 }
+
 }

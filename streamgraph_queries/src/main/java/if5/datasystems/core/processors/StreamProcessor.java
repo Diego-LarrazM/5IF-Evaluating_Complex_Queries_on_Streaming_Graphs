@@ -1,5 +1,8 @@
 package if5.datasystems.core.processors;
 
+import java.io.ObjectOutputStream;
+import java.io.FileOutputStream;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
@@ -41,7 +44,7 @@ public class StreamProcessor {
         private HashMap<Label, Long> totalQueryTimeNs;
         private HashMap<Label, Integer> queryCount;
         private int eventCounter = 0;
-        private final int SERIALIZE_EVERY = 1000;
+        private final int SERIALIZE_EVERY = 100;
 
         public QueryProcessor(long windowSize, List<Pair<Label, Label>> queries) {
             this.WINDOW_SIZE = windowSize;
@@ -99,7 +102,33 @@ public class StreamProcessor {
                 );
                 
             }
-            
+
+            eventCounter++;
+
+            if (eventCounter % SERIALIZE_EVERY == 0) {
+                try (ObjectOutputStream oos = new ObjectOutputStream(
+                        new FileOutputStream("results_" + eventCounter + ".ser"))) {
+
+                    oos.writeObject(this.results);
+                    oos.flush();
+
+                    System.out.println("Serialized results at event #" + eventCounter);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                // --- optional: print avg time per query for logging ---
+                for (Label label : totalQueryTimeNs.keySet()) {
+                    long totalNs = totalQueryTimeNs.get(label);
+                    int count = queryCount.getOrDefault(label, 1); // safety
+                    double avgMs = totalNs / 1_000_000.0 / count;
+
+                    System.out.println(
+                            "Query " + label + " avg time: " + avgMs + " ms over " + count + " runs"
+                    );
+                }
+            }
             // Downstream to output for printing
             out.collect(
                 "ADD    " + edge.getStartTime() + ", " + edge.getExpiricy()  +
