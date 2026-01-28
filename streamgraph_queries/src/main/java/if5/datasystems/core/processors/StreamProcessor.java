@@ -52,8 +52,8 @@ public class StreamProcessor {
         public void processElement(
             EdgeEventFormat edge_event, 
             Context context,
-            Collector<String> out) throws Exception {
-            // Processing of each event (Edge + timestamp + Watermark)
+            Collector<String> out
+        ) throws Exception {
 
             // Update State
             Edge edge = edge_event.edge;
@@ -115,20 +115,6 @@ public class StreamProcessor {
         this.queryProcessor = new QueryProcessor(window_size, queries);
 
         DataStream<String> socketStream = this.env.socketTextStream("localhost", stream_port);
-
-        // this.streamGraph =  
-                            // env.fromSource(
-                            //     FileSource.forRecordStreamFormat(
-                            //         new EdgeStreamFormat(), // Reads CSV to Edge
-                            //         new Path(stream_file_path)
-                            //     ).build()
-                            
-                                // WatermarkStrategy // Sets up time for expiration given edge start times and lateness available
-                                //     .<Edge>forBoundedOutOfOrderness(Duration.ofMillis(watermarkDelta))
-                                //     .withTimestampAssigner((edge, ts) -> edge.getStartTime_ms())
-                                // ,
-                                // "CSV Test Source"
-                            // );
         socketStream
         .filter(s->(s != "" && s != null))
         .map(EdgeEventFormat::new)
@@ -139,23 +125,6 @@ public class StreamProcessor {
         .keyBy(edge -> 0)
         .process(this.queryProcessor)
         .print();
-        // .map(MyEvent::new).process(new ProcessFunction<MyEvent, String>() {
-        //     @Override
-        //     public void processElement(MyEvent event, Context ctx, Collector<String> out) {
-        //         out.collect(event.toString());
-        //     }
-        // }).print();
-        // this.streamGraph.process(new ProcessFunction<Edge, Edge>() {
-        //     @Override
-        //     public void processElement(Edge edge, Context ctx, Collector<Edge> out) {
-        //         System.out.println("EDGE: " + edge.getStartTime_ms() + " | WM=" + ctx.timerService().currentWatermark());
-        //         out.collect(edge);
-        //     }
-        // });
-            //.assignTimestampsAndWatermarks(watermarkStrategy)
-            // .keyBy(edge -> 0)
-            // .process(new QueryProcessor(window_size))
-            // .print();
     }
 
     public void execute(String job_name) throws Exception {

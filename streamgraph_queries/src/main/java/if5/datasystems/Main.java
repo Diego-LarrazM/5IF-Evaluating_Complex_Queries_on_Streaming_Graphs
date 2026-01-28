@@ -3,11 +3,13 @@ import java.sql.Time;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.TreeSet;
 
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 
 import if5.datasystems.core.models.aliases.Label;
+import if5.datasystems.core.models.aliases.Pair;
 import if5.datasystems.core.processors.StreamProcessor;
 import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
@@ -18,12 +20,39 @@ import if5.datasystems.core.models.streamingGraph.Edge;
 public class Main {
     
     public static void main(String[] args) {
-        /*StreamProcessor processor = new StreamProcessor(10, 0);
+        long windowSize = 60000; // 1 minute window
+        ArrayList<Pair<Label, Label>> queries = new ArrayList<>();
+
+        // a*
+        queries.add(
+            new Pair<>(
+                new Label("a2q*"),
+                new Label("manyA")
+            )
+        );
+
+        // a , b*
+        queries.add(
+            new Pair<>(
+                new Label("c2q,a2q*"),
+                new Label("aManyB")
+            )
+        );
+
+        // a , b* , c*
+        queries.add(
+            new Pair<>(
+                new Label("c2a,c2q*,a2q*"),
+                new Label("aManyBThenCMaybe")
+            )
+        );
+
+        StreamProcessor processor = new StreamProcessor(windowSize, 0, queries, 9999);
         try {
             processor.execute("Stream Graph Processor");
         } catch (Exception e) {
             e.printStackTrace();
-        }*/
+        }
 
     }
 }
