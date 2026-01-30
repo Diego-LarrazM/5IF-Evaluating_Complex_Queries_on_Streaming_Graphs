@@ -19,7 +19,7 @@ import if5.datasystems.core.models.streamingGraph.Edge;
 public class Main {
     
     public static void main(String[] args) {
-        long windowSize = 3600*24*1; // 1 day window
+        long windowSize = 3600*24*30; // 1 day window
         ArrayList<Pair<Label, Label>> queries = new ArrayList<>();
 
         // a*

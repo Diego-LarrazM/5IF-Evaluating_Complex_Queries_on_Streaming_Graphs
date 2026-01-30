@@ -28,7 +28,6 @@ import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 import if5.datasystems.core.models.aliases.Label;
 import if5.datasystems.core.models.aliases.Pair;
-import if5.datasystems.core.models.aliases.Triple;
 import if5.datasystems.core.models.aliases.Tuple4;
 import if5.datasystems.core.models.queries.IndexPath;
 
@@ -49,7 +48,8 @@ public class StreamProcessor {
         private HashMap<Label, Long> totalQueryTimeNs;
         private HashMap<Label, Integer> queryCount;
         private int eventCounter = 0;
-        private final int SERIALIZE_EVERY = 100;
+        private final int SERIALIZE_EVERY = 50;
+        private long startProcessingTimeNs; // throughput measurement
 
         public QueryProcessor(long windowSize, List<Pair<Label, Label>> queries) {
             this.WINDOW_SIZE = windowSize;
@@ -64,6 +64,7 @@ public class StreamProcessor {
 
             this.totalQueryTimeNs = new HashMap<>();
             this.queryCount = new HashMap<>();
+            this.startProcessingTimeNs = System.nanoTime();
         }
 
         @Override
@@ -128,6 +129,12 @@ public class StreamProcessor {
                         writer.printf("Query %s avg time: %.3f ms over %d runs%n",
                                 label, avgMs, count);
                     }
+                    
+                    writer.printf("\n=== PERFORMANCE METRICS ===\n");
+                    long nowNs = System.nanoTime();
+                    double throughput = SERIALIZE_EVERY / ((nowNs - startProcessingTimeNs) / 1_000_000_000.0); // events/sec
+                    writer.printf("Throughput: %.2f events/sec%n", throughput);
+                    startProcessingTimeNs = nowNs; // reset for next batch
 
                     System.out.println("Saved human-readable results at " + fileName);
 
