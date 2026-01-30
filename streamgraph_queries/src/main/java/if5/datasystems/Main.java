@@ -1,25 +1,14 @@
 package if5.datasystems;
-import java.sql.Time;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.TreeSet;
-
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 
 import if5.datasystems.core.models.aliases.Label;
 import if5.datasystems.core.models.aliases.Pair;
 import if5.datasystems.core.processors.StreamProcessor;
-import if5.datasystems.core.models.streamingGraph.StreamingGraph;
-import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
-import if5.datasystems.core.models.aliases.Triple;
-import if5.datasystems.core.processors.SPath;
-import if5.datasystems.core.models.streamingGraph.Edge;
 
 public class Main {
     
     public static void main(String[] args) {
-        long windowSize = 3600*24*30; // 1 day window
+        long windowSize = 3600*24*30; // 30 day window
         ArrayList<Pair<Label, Label>> queries = new ArrayList<>();
 
         // a*

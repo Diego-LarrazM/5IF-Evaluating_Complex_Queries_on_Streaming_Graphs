@@ -144,7 +144,7 @@ public class StreamProcessor {
             }
             // Downstream to output for printing
             out.collect(
-                "ADD    " + edge.getStartTime() + ", " + edge.getExpiricy()  +
+                "ADD    " + edge.toString() + ", ts:" + edge.getStartTime()   +
                 " | watermark=" +
                 context.timerService().currentWatermark()
             );
@@ -163,7 +163,7 @@ public class StreamProcessor {
                 StreamingGraphTuple tuple = iterator.next();
                 if (tuple.getExpiricy() <= timestamp) {
                     out.collect(
-                        "REMOVE " + tuple.getStartTime() + ", " + tuple.getExpiricy() +
+                        "REMOVE " + tuple.toString() + ", ts:" + tuple.getStartTime()  +
                         " | watermark=" +
                         context.timerService().currentWatermark()
                     );
