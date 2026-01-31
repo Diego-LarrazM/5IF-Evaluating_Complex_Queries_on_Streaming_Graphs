@@ -46,4 +46,8 @@ public class SpanningTree {
         Pair<String, State> nodeKey = new Pair<>(name,state);
         return this.nodes.containsKey(nodeKey);
     }
+
+    public boolean contains(Pair<String, State> nodeKey) {
+        return this.nodes.containsKey(nodeKey);
+    }
 }   

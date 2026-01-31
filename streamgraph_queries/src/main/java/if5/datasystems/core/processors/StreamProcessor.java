@@ -42,7 +42,7 @@ public class StreamProcessor {
         private StreamingGraph streamingGraph;
         private List<Pair<Label, Label>> queries;
         private HashMap<String, StreamingGraph> results;
-        private SPath spathProcessor;
+        private BatchSPath spathProcessor;
 
         // Metrics
         private HashMap<Label, Long> totalQueryTimeNs;
@@ -60,7 +60,7 @@ public class StreamProcessor {
         public void open(OpenContext ctx) throws Exception {
             this.streamingGraph = new StreamingGraph();
             this.results = new HashMap<>();
-            this.spathProcessor = new SPath();
+            this.spathProcessor = new BatchSPath();
 
             this.totalQueryTimeNs = new HashMap<>();
             this.queryCount = new HashMap<>();

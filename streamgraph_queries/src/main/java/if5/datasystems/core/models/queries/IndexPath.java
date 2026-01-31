@@ -49,4 +49,18 @@ import lombok.Data;
     return result;
   }
 
+  public ArrayList<SpanningTree> expandableTreesNoTConstraint(Pair<String, State> searchNodeKey) {
+    ArrayList<SpanningTree> result = new ArrayList<>();
+    for (SpanningTree tree : indexPath.values()) {
+      IndexNode node = tree.getNode(searchNodeKey);
+
+      if (node == null) {
+        continue;
+      }
+
+      result.add(tree);
+    }
+    return result;
+  }
+
 }

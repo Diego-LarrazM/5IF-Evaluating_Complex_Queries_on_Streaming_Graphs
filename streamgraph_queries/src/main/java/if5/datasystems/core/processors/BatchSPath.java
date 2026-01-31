@@ -19,7 +19,7 @@ import if5.datasystems.core.models.streamingGraph.Edge;
 import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 
-public class SPath implements Function<Tuple4<IndexPath, StreamingGraph, Label, Label>, StreamingGraph> { 
+public class BatchSPath implements Function<Tuple4<IndexPath, StreamingGraph, Label, Label>, StreamingGraph> { 
 
   private Set<StreamingGraphTuple> Expand(SpanningTree T, Pair<String, State> parentKey, Pair<String, State> childKey, Edge edge, Automaton automaton, StreamingGraph S, Label outputLabel) {
     HashSet<StreamingGraphTuple> results = new HashSet<>();
