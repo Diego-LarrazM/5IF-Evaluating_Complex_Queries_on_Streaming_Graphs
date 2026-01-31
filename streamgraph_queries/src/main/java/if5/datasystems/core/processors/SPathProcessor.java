@@ -1,6 +1,7 @@
 package if5.datasystems.core.processors;
 
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeMap;
@@ -17,13 +18,12 @@ import if5.datasystems.core.models.queries.IndexNode;
 import if5.datasystems.core.models.queries.IndexPath;
 import if5.datasystems.core.models.queries.SpanningTree;
 import if5.datasystems.core.models.streamingGraph.Edge;
-import if5.datasystems.core.models.streamingGraph.StreamingGraph;
-import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 
-public class SPathProcessor implements Function<Pair<StreamingGraph, Edge>, TreeMap<Long, Set<NodeKey>>> { 
+public class SPathProcessor implements Function<Pair<HashMap<String, HashSet<Edge>>, Edge>, TreeMap<Long, Set<NodeKey>>>  { 
 
   private IndexPath deltaPath;
   private Automaton automaton;
+  private Label queryLabel;
   private Label outputLabel;
   private TreeMap<Long, Set<NodeKey>> resultTimestamps;
   private HashMap<NodeKey, Long> lookup;
@@ -34,11 +34,18 @@ public class SPathProcessor implements Function<Pair<StreamingGraph, Edge>, Tree
   public Label getOutLabel() {
     return this.outputLabel;
   }
-  public TreeMap<Long, Set<NodeKey>> getResultTimestamps() {
+  public Label getQueryLabel() {
+    return this.queryLabel;
+  }
+  public HashMap<NodeKey, Long> getLookup(){
+    return this.lookup;
+  }
+  public TreeMap<Long, Set<NodeKey>> getResultTimestamps(){
     return this.resultTimestamps;
   }
 
   public SPathProcessor(Label pathLabel, Label outputLabel) {
+    this.queryLabel = pathLabel;
     this.automaton = new Automaton(pathLabel);
     this.outputLabel = outputLabel;
     this.deltaPath = new IndexPath();
@@ -80,7 +87,7 @@ public class SPathProcessor implements Function<Pair<StreamingGraph, Edge>, Tree
     }
   }
   
-  private TreeMap<Long, Set<NodeKey>> spath(StreamingGraph CurrentSnapshotGraph, Edge newEdge) {
+  private TreeMap<Long, Set<NodeKey>> spath(HashMap<String, HashSet<Edge>> vertexEdgesSnapshot, Edge newEdge) {
       String src = newEdge.getSource();
       String trg = newEdge.getTarget();
       Label l = newEdge.getLabel();
@@ -129,18 +136,16 @@ public class SPathProcessor implements Function<Pair<StreamingGraph, Edge>, Tree
 
             IndexNode root = Tx.getRoot();
             if(root.getState() == so && automaton.isFinal(childNode_i.getState())){
-              update_result_map(childNode_i.getStartTime(), new NodeKey(parentKey_i.first(), childKey_j.first()));
+              update_result_map(childNode_i.getStartTime(), new NodeKey(parentKey_i.first(), childKey_j));
             }
-
-            for (StreamingGraphTuple sgt: CurrentSnapshotGraph.getTuples()) {
-              for(Edge e: sgt.getContent()){
-                if(e.getSource() != childNode_i.getName()) continue;
-                State q = automaton.transition(childNode_i.getState(), e.getLabel());
-                if (q == null) continue;
-                String w = e.getTarget();
-                Pair<String, State> possibleNewChildKey = new Pair<>(w,q);
-                path_expansions_heap.add(new PathExpansionHeapNode(childKey_j, possibleNewChildKey, e, e.getStartTime()));
-              }
+            HashSet<Edge> snapshotEdgesFromChild = vertexEdgesSnapshot.get(childNode_i.getName());
+            if (snapshotEdgesFromChild == null) {continue;}
+            for (Edge e: snapshotEdgesFromChild) {
+              State q = automaton.transition(childNode_i.getState(), e.getLabel());
+              if (q == null) continue;
+              String w = e.getTarget();
+              Pair<String, State> possibleNewChildKey = new Pair<>(w,q);
+              path_expansions_heap.add(new PathExpansionHeapNode(childKey_j, possibleNewChildKey, e, e.getStartTime()));
             }
         }
       }
@@ -151,7 +156,7 @@ public class SPathProcessor implements Function<Pair<StreamingGraph, Edge>, Tree
   }
 
   @Override
-  public TreeMap<Long, Set<NodeKey>> apply(Pair<StreamingGraph, Edge> input){
+  public TreeMap<Long, Set<NodeKey>> apply(Pair<HashMap<String, HashSet<Edge>>, Edge> input){
     return spath(input.first(), input.second());
   }
 

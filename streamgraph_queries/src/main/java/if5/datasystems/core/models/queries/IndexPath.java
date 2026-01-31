@@ -4,7 +4,6 @@ import if5.datasystems.core.models.aliases.Pair;
 import if5.datasystems.core.models.aliases.State;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import lombok.Data;
@@ -18,6 +17,10 @@ import lombok.Data;
 
   public void createTree(IndexNode rootNode) {
     this.indexPath.put(rootNode.getName(), new SpanningTree(rootNode));
+  }
+
+  public void removeTree(String rootName) {
+    this.indexPath.remove(rootName);
   }
 
   public SpanningTree getTree(String rootName){

@@ -19,6 +19,11 @@ public class SpanningTree {
         this.addNode(this.root);
     }
 
+    public void removeNode(Pair<String, State> nodeKey) {
+        if(nodeKey == null || !this.nodes.containsKey(nodeKey)) {return;}
+        this.nodes.remove(nodeKey);
+    }
+
     public void addNode(IndexNode node) {
         if(node == null) {return;}
         Pair<String, State> nodeKey = new Pair<>(node.getName(),node.getState());

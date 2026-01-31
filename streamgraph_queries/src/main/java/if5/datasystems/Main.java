@@ -8,7 +8,7 @@ import if5.datasystems.core.processors.StreamProcessor;
 public class Main {
     
     public static void main(String[] args) {
-        long windowSize = 3600*24*30; // 30 day window
+        long windowSize = 3600*24*30; // 30 day window (in s for stack overflow)
         ArrayList<Pair<Label, Label>> queries = new ArrayList<>();
 
         // a*
