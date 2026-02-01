@@ -1,7 +1,61 @@
 # Paper implementation of "Evaluating Complex Queries on Streaming Graphs" by Pacaci & al.
 
+## Papers: 
 
-PACACI, Anil; BONIFATI, Angela; ÖZSU, M. Tamer. Evaluating complex queries on streaming graphs. En 2022 IEEE 38th International Conference on Data Engineering (ICDE). IEEE, 2022. p. 272-285.<br>
+>PACACI, Anil; BONIFATI, Angela; ÖZSU, M. Tamer. Evaluating complex queries on streaming graphs. En 2022 IEEE 38th International Conference on Data Engineering (ICDE). IEEE, 2022. p. 272-285.<br>
 Url: https://ieeexplore.ieee.org/abstract/document/9835463/
 
+
+>Iterative SPATH implementation algorithm: https://mod.wict.pku.edu.cn/docs/20240422170756302199.pdf (algorithm 1)
+
+Windowing based on flink watermarking instead of a sliding window.
+
 ---
+
+## Dataset for testing: 
+https://snap.stanford.edu/data/sx-stackoverflow.html
+
+datasets/
+- sx-stackoverflow-a2q.txt
+- sx-stackoverflow-c2q.txt
+- sx-stackoverflow-c2a.txt
+
+## Optimizations:
+
+### 1. IndexPath Updating
+All nodes (<vertex name, state>) refer to their parents by a pointer. Changing their parents is simply changing their pointer and paths can simply be obtained by recursively searching parents until source desired or root of tree found.
+All existing paths (source,target) are also documented as metadata in `resultTimestamps`.
+
+### 2. Expansions from an edge incoming
+Instead of the snapshotGraph we give a Hashmap that returns per vertex their edges they take part in in snapshot, updated iteratively alogn the snapshot StreamingGraph.
+```java
+private HashMap<String, HashSet<Edge>> vertexEdges; // Per Vertex (v), all current existing edges where v = e.src, for efficiency in spath
+```
+
+Helps when expanding in spath instead of searching ALL streaming graph edges adn check if child == new_src:
+
+```java
+HashSet<Edge> snapshotEdgesFromChild = vertexEdgesSnapshot.get(childNode_i.getName());
+if (snapshotEdgesFromChild == null) {continue;}
+for (Edge e: snapshotEdgesFromChild) {
+  //... Expansion
+}
+```
+
+### 3. IndexPath Expiration
+
+Uppon expiring an edge in the snapshot StreamingGraph or `vertexEdges` we need to check if an index path is no longer available.
+
+This is done very easily with two structures:
+```java
+private TreeMap<Long, Set<NodeKey>> resultTimestamps; // Per StartTime timestamp -> set of path keys: <SpanningTreeRoot, targetKey of path (<vertex name, state>)>
+private HashMap<NodeKey, Long> lookup; // PathKey -> ts
+```
+
+The ordered TreeMap where paths are grouped by their timestamp makes it we only have to check a few timestamp values by polling and expire them all together while ts < (current_ts - WINDOW_SIZE).
+
+Now the important point is we ONLY have to expire the pathTargetKey node and not all of its parents given childNode.ts <= parentNode.ts in the IndexPath, thus the parents will be eliminated along (on the same set of ts) or will be eliminated later on. 
+
+Simple O(1) per remove given spanning trees are HashMaps of NodeKeys.
+
+
