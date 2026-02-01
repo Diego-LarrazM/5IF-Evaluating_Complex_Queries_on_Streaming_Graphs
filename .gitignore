@@ -19,5 +19,7 @@
 **/surefire-reports/*
 
 **/results/*
+**/datasets/*
+!**/datasets/integration_test.csv
 
 !**/results/integration_test_expected_result.txt
