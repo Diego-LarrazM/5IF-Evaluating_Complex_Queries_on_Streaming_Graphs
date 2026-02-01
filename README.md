@@ -13,7 +13,7 @@ Project [DATA Systems Research](https://www.riccardotommasini.com/courses/resear
 ## Students: 
 - **Diego LARRAZ MARTIN** — diego.larraz-martin@insa-lyon.fr
 - **Doha ES-SOUFI** — doha.es-soufi@insa-lyon.fr  
-- **Jassir HABBA** — jassir.habba@insa-lyon.fr
+- **Amadou SOW** — amadou.sow@insa-lyon.fr 
   
 ## Papers: 
 
