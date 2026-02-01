@@ -6,7 +6,9 @@
 Url: https://ieeexplore.ieee.org/abstract/document/9835463/
 
 
->Iterative SPATH implementation algorithm: https://mod.wict.pku.edu.cn/docs/20240422170756302199.pdf (algorithm 1)
+>Iterative SPATH implementation algorithm:
+Xiangyang Gou, Xinyi Ye, Lei Zou & Jeffrey Xu Yu. “LM‑SRPQ: Efficiently Answering Regular Path Query in Streaming Graphs.” Proceedings of the VLDB Endowment, Vol. 17, No. 5, pp. 1047–1059, 2024. DOI: 10.14778/3641204.3641214. (Algorithm 1)
+Url: https://mod.wict.pku.edu.cn/docs/20240422170756302199.pdf 
 
 Windowing based on flink watermarking instead of a sliding window.
 
