@@ -1,5 +1,20 @@
 # Paper implementation of "Evaluating Complex Queries on Streaming Graphs" by Pacaci & al.
 
+<center>
+
+<span style="font-size: 150%;">
+
+Project [DATA Systems Research](https://www.riccardotommasini.com/courses/research-insa-ot/) is provided by [INSA Lyon](https://www.insa-lyon.fr/).
+
+</span>
+
+</center>
+
+## Students: 
+- **Diego LARRAZ MARTIN** — diego.larraz-martin@insa-lyon.fr
+- **Doha ES-SOUFI** — doha.es-soufi@insa-lyon.fr  
+- **Jassir HABBA** — jassir.habba@insa-lyon.fr
+  
 ## Papers: 
 
 >PACACI, Anil; BONIFATI, Angela; ÖZSU, M. Tamer. Evaluating complex queries on streaming graphs. En 2022 IEEE 38th International Conference on Data Engineering (ICDE). IEEE, 2022. p. 272-285.<br>
@@ -66,3 +81,11 @@ This repository was developed as part of a college reproducibility project at IN
 Its purpose is to implement and experiment with the algorithms described in the prior mentionned papers.
 
 While the code is dedicated to the public domain under Creative Commons CC0 1.0 Universal (CC0 1.0) License (see [LICENSE](./LICENSE) for details), it was primarily created for **educational and research purposes**.
+
+## Institute logo
+
+<center>
+
+![Insalogo](./docs/logo-insa_0.png)
+
+</center>
