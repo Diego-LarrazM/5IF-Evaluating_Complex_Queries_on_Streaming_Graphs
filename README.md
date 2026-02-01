@@ -25,11 +25,11 @@ datasets/
 ## Optimizations:
 
 ### 1. IndexPath Updating
-All nodes (<vertex name, state>) refer to their parents by a pointer. Changing their parents is simply changing their pointer and paths can simply be obtained by recursively searching parents until source desired or root of tree found.
-All existing paths (source,target) are also documented as metadata in `resultTimestamps`.
+All nodes (<vertex name, state>) refer to their parents by a pointer. Changing their parents is simply changing their pointer. Paths can simply be obtained by recursively searching parents until the desired node or root of the tree is found.
+All existing paths (source, target) are also documented as metadata in `resultTimestamps`.
 
 ### 2. Expansions from an edge incoming
-Instead of the snapshotGraph we give a Hashmap that returns per vertex their edges they take part in in snapshot, updated iteratively alogn the snapshot StreamingGraph.
+Instead of the snapshotGraph, we give a Hashmap that returns, for each vertex, the edges they take part in inside the snapshot, updated iteratively along the snapshot StreamingGraph.
 ```java
 private HashMap<String, HashSet<Edge>> vertexEdges; // Per Vertex (v), all current existing edges where v = e.src, for efficiency in spath
 ```
@@ -46,7 +46,7 @@ for (Edge e: snapshotEdgesFromChild) {
 
 ### 3. IndexPath Expiration
 
-Uppon expiring an edge in the snapshot StreamingGraph or `vertexEdges` we need to check if an index path is no longer available.
+Upon expiring an edge in the snapshot StreamingGraph or `vertexEdges` we need to check if an index path is no longer available.
 
 This is done very easily with two structures:
 ```java
@@ -54,10 +54,15 @@ private TreeMap<Long, Set<NodeKey>> resultTimestamps; // Per StartTime timestamp
 private HashMap<NodeKey, Long> lookup; // PathKey -> ts
 ```
 
-The ordered TreeMap where paths are grouped by their timestamp makes it we only have to check a few timestamp values by polling and expire them all together while ts < (current_ts - WINDOW_SIZE).
+The ordered TreeMap where paths are grouped by their timestamp makes it so that we only have to check a few timestamp values by polling, and expire them all together while ts < (current_ts - WINDOW_SIZE).
 
-Now the important point is we ONLY have to expire the pathTargetKey node and not all of its parents given childNode.ts <= parentNode.ts in the IndexPath, thus the parents will be eliminated along (on the same set of ts) or will be eliminated later on. 
+Now the important point is we ONLY have to expire the pathTargetKey node and not all of its parents, given childNode.ts <= parentNode.ts in the IndexPath, thus the parents will be eliminated along (on the same set of ts) or will be eliminated later on. 
 
-Simple O(1) per remove given spanning trees are HashMaps of NodeKeys.
+Simple O(1) per remove, given spanning trees are HashMaps of NodeKeys.
 
+## License
 
+This repository was developed as part of a college reproducibility project at INSA Lyon. 
+Its purpose is to implement and experiment with the algorithms described in the prior mentionned papers.
+
+While the code is dedicated to the public domain under Creative Commons CC0 1.0 Universal (CC0 1.0) License (see [LICENSE](./LICENSE) for details), it was primarily created for **educational and research purposes**.
