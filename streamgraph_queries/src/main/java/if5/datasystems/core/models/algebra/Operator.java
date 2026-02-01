@@ -1,6 +1,5 @@
 package if5.datasystems.core.models.algebra;
 import java.util.function.Function;
-import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 
 
 class Operator<I,O> implements Function<I, O> {

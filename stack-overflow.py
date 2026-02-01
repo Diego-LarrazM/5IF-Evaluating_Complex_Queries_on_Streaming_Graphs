@@ -24,7 +24,7 @@ def start_server(port):
             "c2a": "./datasets/sx-stackoverflow-c2a.txt"
         }
         
-        maxLines = 1000
+        maxLines = 1000000000
         lines = 0
 
         # Open all three files
@@ -52,7 +52,7 @@ def start_server(port):
                     event = f"{src};{dst};{label};{ts}\n"
                     conn.sendall(event.encode('utf-8'))
                     print(f"PYTHON: Sent: {event.strip()}")
-                    time.sleep(0.05)  # optional delay between events
+                    #time.sleep(0.01)  # optional delay between events
                     
                 lines += 1 # Set a limit for testing
                 if lines >= maxLines:

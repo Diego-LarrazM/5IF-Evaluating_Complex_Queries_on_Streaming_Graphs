@@ -1,7 +1,6 @@
 package if5.datasystems.core.processors;
 
 import java.util.HashSet;
-import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeMap;

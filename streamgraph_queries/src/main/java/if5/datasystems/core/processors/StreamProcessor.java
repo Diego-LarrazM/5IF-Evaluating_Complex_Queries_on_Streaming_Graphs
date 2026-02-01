@@ -1,9 +1,5 @@
 package if5.datasystems.core.processors;
-
-import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
-import java.nio.file.Paths;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -53,7 +49,7 @@ public class StreamProcessor {
         private HashMap<Label, Long> totalQueryTimeNs;
         private HashMap<Label, Integer> queryCount;
         private int eventCounter = 0;
-        private final int SERIALIZE_EVERY = 1;
+        private final int SERIALIZE_EVERY = 1000;
         private long startProcessingTimeNs; // throughput measurement
 
         public QueryProcessor(long windowSize, List<Pair<Label, Label>> queries) {
@@ -62,7 +58,7 @@ public class StreamProcessor {
         }
 
         @Override
-        public void open(OpenContext ctx) throws Exception {
+        public void open(OpenContext ctx) throws Exception { 
             this.currentSnapshotGraph = new StreamingGraph();
             this.vertexEdges = new HashMap<>();
             this.queryProcessors = new ArrayList<>();
@@ -146,11 +142,11 @@ public class StreamProcessor {
                 }
             }
             // Downstream to output for printing
-            out.collect(
+            /*out.collect(
                 "ADD    " + edge.toString() + ", ts:" + edge.getStartTime()   +
                 " | watermark=" +
                 context.timerService().currentWatermark()
-            );
+            );*/
 
             // Register expiration timer to call onTimer when currentWatermark >= expirationTimer
             context.timerService().registerEventTimeTimer(edge.getExpiricy());
@@ -174,11 +170,11 @@ public class StreamProcessor {
                     this.vertexEdges.get(src).remove(e);
 
                     // Remove from snapshot
-                    out.collect(
+                    /*out.collect(
                         "REMOVE " + tuple.toString() + ", ts:" + tuple.getStartTime()  +
                         " | watermark=" +
                         context.timerService().currentWatermark()
-                    );
+                    );*/
                     iterator.remove();
                 } else {
                     // Arrêter l'itération dès qu'un tuple non expiré est trouvé
@@ -198,7 +194,7 @@ public class StreamProcessor {
                     Entry<Long, Set<NodeKey>> timestamp_results = ALL_RS.pollFirstEntry();
                     for (NodeKey pathKey : timestamp_results.getValue()) {
                         String root = pathKey.pathSource();
-                        System.out.println("EXPIRE PATH " + root + "--*-->" + pathKey.pathTargetKey().toString());
+                        // System.out.println("EXPIRE PATH " + root + "--*-->" + pathKey.pathTargetKey().toString()); // To un-comment for debugging
                         SpanningTree Tx = queryDeltaPath.getTree(root);
                         node_lookup.remove(pathKey);
                         Tx.removeNode(pathKey.pathTargetKey());
@@ -226,10 +222,11 @@ public class StreamProcessor {
         .assignTimestampsAndWatermarks(
             WatermarkStrategy //Sets up time for expiration given edge start times and lateness available
             .<EdgeEventFormat>forBoundedOutOfOrderness(Duration.ofMillis(watermarkDelta))
+            //.<EdgeEventFormat>forMonotonousTimestamps()
             .withTimestampAssigner((event, ts) -> event.timestamp))
         .keyBy(edge -> 0)
-        .process(this.queryProcessor)
-        .print();
+        .process(this.queryProcessor);
+        //.print(); // for debugging
     }
 
     public void execute(String job_name) throws Exception {

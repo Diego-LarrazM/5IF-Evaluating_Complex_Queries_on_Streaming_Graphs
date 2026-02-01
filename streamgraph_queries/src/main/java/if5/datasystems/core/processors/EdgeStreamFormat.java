@@ -3,7 +3,6 @@ package if5.datasystems.core.processors;
 import if5.datasystems.core.models.streamingGraph.Edge;
 import if5.datasystems.core.models.aliases.Label;
 
-import org.apache.flink.core.io.SimpleVersionedSerializer;
 import org.apache.flink.connector.file.src.reader.StreamFormat;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
@@ -11,7 +10,6 @@ import org.apache.flink.core.fs.FSDataInputStream;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class EdgeStreamFormat implements StreamFormat<Edge> {

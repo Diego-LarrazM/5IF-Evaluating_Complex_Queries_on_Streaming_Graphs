@@ -8,12 +8,12 @@ import if5.datasystems.core.processors.StreamProcessor;
 public class Main {
     
     public static void main(String[] args) {
-        //long windowSize = 3600*24*30; // 30 day window (in s for stack overflow)
-        long windowSize = 5; // (in s for integration test)
+        long windowSize = 3600*24*30; // 30 day window (in s for stack overflow)
+        //long windowSize = 5; // (in s for integration test)
         ArrayList<Pair<Label, Label>> queries = new ArrayList<>();
 
         // a*
-        /*queries.add(
+        queries.add(
             new Pair<>(
                 new Label("a2q*"),
                 new Label("Q1")
@@ -34,14 +34,16 @@ public class Main {
                 new Label("c2a,c2q*,a2q*"),
                 new Label("Q3" )
             )
-        );*/
+        );
 
-        queries.add(
+
+        // Integration Test query
+        /*queries.add(
             new Pair<>(
                 new Label("a,b*"),
                 new Label("Q1")
             )
-        );
+        );*/
 
 
         StreamProcessor processor = new StreamProcessor(windowSize, 0, queries, 8080);
