@@ -111,17 +111,16 @@ public class StreamProcessor {
 
             eventCounter++;
 
-            if (eventCounter % SERIALIZE_EVERY == 0) {
-                String fileName = "results_" + eventCounter + ".txt";
+            if (eventCounter % SERIALIZE_EVERY == 0) { // Saves metrics and results to parent_dir/results/
+                String fileName = "./results/results_" + eventCounter + ".txt";
                 try (PrintWriter writer = new PrintWriter(new FileWriter(fileName))) {
 
                     // --- write the results in human-readable form ---
                     writer.println("=== RESULTS AT EVENT #" + eventCounter + " ===");
                     for (SPathProcessor spathProcessor : this.queryProcessors) {
-                        writer.printf("\n--- Results for query %s ---\n", spathProcessor.getOutLabel());
-                        writer.println(spathProcessor.getDeltaPath().toString());
+                        writer.printf("\n--- Results for query %s: %s ---\n", spathProcessor.getOutLabel(), spathProcessor.getQueryLabel());
+                        writer.println(spathProcessor.getDeltaPath());
                     }
-                    writer.println(this.queryProcessors.toString());
 
                     // --- write average time per query ---
                     writer.println("\n=== QUERY TIME METRICS ===");
@@ -196,10 +195,10 @@ public class StreamProcessor {
                 Long result_ts = ALL_RS.isEmpty() ? null : ALL_RS.firstKey();
                 while (result_ts != null && result_ts < timestamp - WINDOW_SIZE) {
                     // Remove entry and expire all
-                    Entry<Long, Set<NodeKey>> timestamp_results = ALL_RS.pollFirstEntry(); 
+                    Entry<Long, Set<NodeKey>> timestamp_results = ALL_RS.pollFirstEntry();
                     for (NodeKey pathKey : timestamp_results.getValue()) {
-                        System.out.println(pathKey.toString());
                         String root = pathKey.pathSource();
+                        System.out.println("EXPIRE PATH " + root + "--*-->" + pathKey.pathTargetKey().toString());
                         SpanningTree Tx = queryDeltaPath.getTree(root);
                         node_lookup.remove(pathKey);
                         Tx.removeNode(pathKey.pathTargetKey());
