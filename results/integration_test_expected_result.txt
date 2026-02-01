@@ -1,0 +1,98 @@
+====== Expected Result ======
+ADD    Edge(x --a--> y), ts:1 | watermark=-9223372036854775808
+IndexPath(indexPath={x=SpanningTree(nodes={
+Pair[first=x, second=s0]=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null), 
+Pair[first=y, second=s1]=IndexNode(name=y, state=s1, startTime=1, expiricy=6, parent=Pair[first=x, second=s0], fromLabel=a)}, root=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null))})
+
+ADD    Edge(y --b--> z), ts:2 | watermark=0
+IndexPath(indexPath={x=SpanningTree(nodes={
+Pair[first=x, second=s0]=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null), 
+Pair[first=y, second=s1]=IndexNode(name=y, state=s1, startTime=1, expiricy=6, parent=Pair[first=x, second=s0], fromLabel=a), 
+Pair[first=z, second=s2]=IndexNode(name=z, state=s2, startTime=1, expiricy=6, parent=Pair[first=y, second=s1], fromLabel=b)}, root=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null))})
+
+ADD    Edge(x --a--> m), ts:4 | watermark=1
+IndexPath(indexPath={x=SpanningTree(nodes={
+Pair[first=m, second=s1]=IndexNode(name=m, state=s1, startTime=4, expiricy=9, parent=Pair[first=x, second=s0], fromLabel=a), 
+Pair[first=x, second=s0]=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null), 
+Pair[first=y, second=s1]=IndexNode(name=y, state=s1, startTime=1, expiricy=6, parent=Pair[first=x, second=s0], fromLabel=a), 
+Pair[first=z, second=s2]=IndexNode(name=z, state=s2, startTime=1, expiricy=6, parent=Pair[first=y, second=s1], fromLabel=b)}, root=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null))})
+
+ADD    Edge(m --b--> r), ts:5 | watermark=3
+IndexPath(indexPath={x=SpanningTree(nodes={
+Pair[first=m, second=s1]=IndexNode(name=m, state=s1, startTime=4, expiricy=9, parent=Pair[first=x, second=s0], fromLabel=a), 
+Pair[first=x, second=s0]=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null), 
+Pair[first=y, second=s1]=IndexNode(name=y, state=s1, startTime=1, expiricy=6, parent=Pair[first=x, second=s0], fromLabel=a), 
+Pair[first=z, second=s2]=IndexNode(name=z, state=s2, startTime=1, expiricy=6, parent=Pair[first=y, second=s1], fromLabel=b), 
+Pair[first=r, second=s2]=IndexNode(name=r, state=s2, startTime=4, expiricy=9, parent=Pair[first=m, second=s1], fromLabel=b)}, root=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null))})
+
+ADD    Edge(r --b--> t), ts:9 | watermark=4
+IndexPath(indexPath={x=SpanningTree(nodes={
+Pair[first=m, second=s1]=IndexNode(name=m, state=s1, startTime=4, expiricy=9, parent=Pair[first=x, second=s0], fromLabel=a), 
+Pair[first=x, second=s0]=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null), 
+Pair[first=y, second=s1]=IndexNode(name=y, state=s1, startTime=1, expiricy=6, parent=Pair[first=x, second=s0], fromLabel=a), 
+Pair[first=z, second=s2]=IndexNode(name=z, state=s2, startTime=1, expiricy=6, parent=Pair[first=y, second=s1], fromLabel=b), 
+Pair[first=t, second=s2]=IndexNode(name=t, state=s2, startTime=4, expiricy=9, parent=Pair[first=r, second=s2], fromLabel=b), 
+Pair[first=r, second=s2]=IndexNode(name=r, state=s2, startTime=4, expiricy=9, parent=Pair[first=m, second=s1], fromLabel=b)}, root=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null))})
+
+REMOVE StreamingGraphTuple{repr=Edge(x --a--> y), content=[Edge(x --a--> y)]}, ts:1 | watermark=8
+REMOVE StreamingGraphTuple{repr=Edge(y --b--> z), content=[Edge(y --b--> z)]}, ts:2 | watermark=8
+EXPIRE PATH x--*-->Pair[first=y, second=s1]
+EXPIRE PATH x--*-->Pair[first=z, second=s2]
+ADD    Edge(l --b--> t), ts:12 | watermark=8
+IndexPath(indexPath={x=SpanningTree(nodes={
+Pair[first=m, second=s1]=IndexNode(name=m, state=s1, startTime=4, expiricy=9, parent=Pair[first=x, second=s0], fromLabel=a), 
+Pair[first=x, second=s0]=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null), 
+Pair[first=t, second=s2]=IndexNode(name=t, state=s2, startTime=4, expiricy=9, parent=Pair[first=r, second=s2], fromLabel=b), 
+Pair[first=r, second=s2]=IndexNode(name=r, state=s2, startTime=4, expiricy=9, parent=Pair[first=m, second=s1], fromLabel=b)}, root=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null))})
+
+REMOVE StreamingGraphTuple{repr=Edge(x --a--> m), content=[Edge(x --a--> m)]}, ts:4 | watermark=11
+REMOVE StreamingGraphTuple{repr=Edge(m --b--> r), content=[Edge(m --b--> r)]}, ts:5 | watermark=11
+EXPIRE PATH x--*-->Pair[first=t, second=s2]
+EXPIRE PATH x--*-->Pair[first=r, second=s2]
+EXPIRE PATH x--*-->Pair[first=m, second=s1]
+ADD    Edge(y --b--> m), ts:11 | watermark=11
+IndexPath(indexPath={}) # r-t also removed even if sgt not expired cause path no longer existent !
+
+ADD    Edge(x --a--> z), ts:7 | watermark=11
+IndexPath(indexPath={x=SpanningTree(nodes={
+Pair[first=z, second=s1]=IndexNode(name=z, state=s1, startTime=7, expiricy=12, parent=Pair[first=x, second=s0], fromLabel=a), 
+Pair[first=x, second=s0]=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null)}, root=IndexNode(name=x, state=s0, startTime=9223372036854775807, expiricy=9223372036854775807, parent=null, fromLabel=null))})
+
+REMOVE StreamingGraphTuple{repr=Edge(r --b--> t), content=[Edge(r --b--> t)]}, ts:9 | watermark=9223372036854775807
+EXPIRE PATH x--*-->Pair[first=z, second=s1]
+REMOVE StreamingGraphTuple{repr=Edge(y --b--> m), content=[Edge(y --b--> m)]}, ts:11 | watermark=9223372036854775807
+REMOVE StreamingGraphTuple{repr=Edge(x --a--> z), content=[Edge(x --a--> z)]}, ts:7 | watermark=9223372036854775807
+REMOVE StreamingGraphTuple{repr=Edge(l --b--> t), content=[Edge(l --b--> t)]}, ts:12 | watermark=9223372036854775807
+
+
+====== FULL LOG ======
+Saved human-readable results at results_1.txt
+ADD    Edge(x --a--> y), ts:1 | watermark=-9223372036854775808
+Saved human-readable results at results_2.txt
+ADD    Edge(y --b--> z), ts:2 | watermark=0
+Saved human-readable results at results_3.txt
+ADD    Edge(x --a--> m), ts:4 | watermark=1
+Saved human-readable results at results_4.txt
+ADD    Edge(m --b--> r), ts:5 | watermark=3
+Saved human-readable results at results_5.txt
+ADD    Edge(r --b--> t), ts:9 | watermark=4
+REMOVE StreamingGraphTuple{repr=Edge(x --a--> y), content=[Edge(x --a--> y)]}, ts:1 | watermark=8
+REMOVE StreamingGraphTuple{repr=Edge(y --b--> z), content=[Edge(y --b--> z)]}, ts:2 | watermark=8
+EXPIRE PATH x--*-->Pair[first=y, second=s1]
+EXPIRE PATH x--*-->Pair[first=z, second=s2]
+Saved human-readable results at results_6.txt
+ADD    Edge(l --b--> t), ts:12 | watermark=8
+REMOVE StreamingGraphTuple{repr=Edge(x --a--> m), content=[Edge(x --a--> m)]}, ts:4 | watermark=11
+REMOVE StreamingGraphTuple{repr=Edge(m --b--> r), content=[Edge(m --b--> r)]}, ts:5 | watermark=11
+EXPIRE PATH x--*-->Pair[first=t, second=s2]
+EXPIRE PATH x--*-->Pair[first=r, second=s2]
+EXPIRE PATH x--*-->Pair[first=m, second=s1]
+Saved human-readable results at results_7.txt
+ADD    Edge(y --b--> m), ts:11 | watermark=11
+Saved human-readable results at results_8.txt
+ADD    Edge(x --a--> z), ts:7 | watermark=11
+REMOVE StreamingGraphTuple{repr=Edge(r --b--> t), content=[Edge(r --b--> t)]}, ts:9 | watermark=9223372036854775807
+EXPIRE PATH x--*-->Pair[first=z, second=s1]
+REMOVE StreamingGraphTuple{repr=Edge(y --b--> m), content=[Edge(y --b--> m)]}, ts:11 | watermark=9223372036854775807
+REMOVE StreamingGraphTuple{repr=Edge(x --a--> z), content=[Edge(x --a--> z)]}, ts:7 | watermark=9223372036854775807
+REMOVE StreamingGraphTuple{repr=Edge(l --b--> t), content=[Edge(l --b--> t)]}, ts:12 | watermark=9223372036854775807

@@ -26,6 +26,10 @@ public class IndexNode {
         this.expiricy = expiricy;
     }
 
+    public Pair<String, State> getKey() {
+        return new Pair<>(this.name, this.state);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

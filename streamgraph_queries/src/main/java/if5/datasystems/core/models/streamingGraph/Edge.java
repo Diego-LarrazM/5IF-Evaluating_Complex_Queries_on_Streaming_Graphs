@@ -1,7 +1,6 @@
 package if5.datasystems.core.models.streamingGraph;
 
 import java.io.Serializable;
-import java.util.Date;
 
 import if5.datasystems.core.models.aliases.Label;
 import lombok.Data;

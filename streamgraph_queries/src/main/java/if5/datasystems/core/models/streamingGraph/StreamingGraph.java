@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import if5.datasystems.core.models.aliases.Label;
 import lombok.Data;
 
 @Data public class StreamingGraph implements Serializable {

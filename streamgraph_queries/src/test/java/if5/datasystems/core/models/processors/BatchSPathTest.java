@@ -2,7 +2,7 @@ package if5.datasystems.core.models.processors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import if5.datasystems.core.processors.SPath;
+import if5.datasystems.core.processors.BatchSPath;
 
 import org.apache.flink.shaded.zookeeper3.org.apache.jute.Index;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import if5.datasystems.core.models.streamingGraph.Edge;
 import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 
-class SPathTest {
+class BatchSPathTest {
 
     private Edge edge(
             String src, String tgt, String label,
@@ -40,7 +40,7 @@ class SPathTest {
 
     @Test
     void spath_multiple_labels_propagation_story() {
-        SPath spath = new SPath();
+        BatchSPath spath = new BatchSPath();
 
         // ─────────────────────────
         // Step 1
@@ -126,7 +126,7 @@ class SPathTest {
 
     @Test
     void propagate_test_multiple_incomes_single_label() {
-        SPath spath = new SPath();
+        BatchSPath spath = new BatchSPath();
         IndexPath deltaPath = new IndexPath();
         StreamingGraph g = graph(
                 edge("x", "y", "a", 0, 1000),
@@ -192,7 +192,7 @@ class SPathTest {
 
     @Test
     void emptyGraph_returnsEmptyResult() {
-        SPath spath = new SPath();
+        BatchSPath spath = new BatchSPath();
         StreamingGraph g = new StreamingGraph();
 
         StreamingGraph result = spath.apply(
@@ -204,7 +204,7 @@ class SPathTest {
 
     @Test
     void singleEdge_matchingLabel_producesPath() {
-        SPath spath = new SPath();
+        BatchSPath spath = new BatchSPath();
         StreamingGraph g = graph(
                 edge("A", "B", "a", 0, 10)
         );
@@ -223,7 +223,7 @@ class SPathTest {
 
     @Test
     void singleEdge_wrongLabel_producesNothing() {
-        SPath spath = new SPath();
+        BatchSPath spath = new BatchSPath();
         StreamingGraph g = graph(
                 edge("A", "B", "b", 0, 10)
         );
@@ -237,7 +237,7 @@ class SPathTest {
 
     @Test
     void twoEdgePath_produces_all_valid_paths_withPlusAutomaton() {
-        SPath spath = new SPath();
+        BatchSPath spath = new BatchSPath();
 
         StreamingGraph g = graph(
                 edge("A", "B", "a", 0, 10),
@@ -282,7 +282,7 @@ class SPathTest {
 
     @Test
     void expiredEdges_doNotFormPath_dueToSnapshot() {
-        SPath spath = new SPath();
+        BatchSPath spath = new BatchSPath();
         StreamingGraph g = graph(
                 edge("A", "B", "a", 0, 5),
                 edge("B", "C", "a", 6, 10)
@@ -303,7 +303,7 @@ class SPathTest {
 
     @Test
     void atMostOnePathPerVertexStateIsMaintained() {
-        SPath spath = new SPath();
+        BatchSPath spath = new BatchSPath();
 
         StreamingGraph g = new StreamingGraph();
         g.add(new StreamingGraphTuple(new Edge("A","B",new Label("a"),0,10)));
@@ -326,7 +326,7 @@ class SPathTest {
 
     @Test
     void cyclesAreHandledUnderArbitraryPathSemantics() {
-        SPath spath = new SPath();
+        BatchSPath spath = new BatchSPath();
 
         StreamingGraph g = new StreamingGraph();
         g.add(new StreamingGraphTuple(

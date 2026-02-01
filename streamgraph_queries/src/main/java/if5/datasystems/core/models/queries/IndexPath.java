@@ -4,7 +4,6 @@ import if5.datasystems.core.models.aliases.Pair;
 import if5.datasystems.core.models.aliases.State;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import lombok.Data;
@@ -16,8 +15,16 @@ import lombok.Data;
     this.indexPath = new HashMap<>();
   }
 
+  public boolean isEmpty(){
+    return this.indexPath.isEmpty();
+  }
+
   public void createTree(IndexNode rootNode) {
     this.indexPath.put(rootNode.getName(), new SpanningTree(rootNode));
+  }
+
+  public void removeTree(String rootName) {
+    this.indexPath.remove(rootName);
   }
 
   public SpanningTree getTree(String rootName){
@@ -41,6 +48,20 @@ import lombok.Data;
       long exp = node.getExpiricy();
 
       if (t < start || t > exp) {
+        continue;
+      }
+
+      result.add(tree);
+    }
+    return result;
+  }
+
+  public ArrayList<SpanningTree> expandableTreesNoTConstraint(Pair<String, State> searchNodeKey) {
+    ArrayList<SpanningTree> result = new ArrayList<>();
+    for (SpanningTree tree : indexPath.values()) {
+      IndexNode node = tree.getNode(searchNodeKey);
+
+      if (node == null) {
         continue;
       }
 
