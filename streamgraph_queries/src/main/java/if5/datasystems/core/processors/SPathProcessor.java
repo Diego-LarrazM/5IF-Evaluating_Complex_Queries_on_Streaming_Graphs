@@ -57,7 +57,7 @@ public class SPathProcessor implements Function<Pair<HashMap<String, HashSet<Edg
     childNode.setParent(parentNode.getKey());
     childNode.setFromLabel(edgeExpansion.getLabel());
     childNode.setStartTime(TimeOps.minTime(edgeExpansion.getStartTime(), parentNode.getStartTime()));
-    //childNode.setExpiricy(TimeOps.minTime(edgeExpansion.getExpiricy(), parentNode.getExpiricy())); Un-needed
+    childNode.setExpiricy(TimeOps.minTime(edgeExpansion.getExpiricy(), parentNode.getExpiricy()));
   }
 
   private void update_result_map(long newTs, NodeKey pathKey) {
@@ -136,7 +136,7 @@ public class SPathProcessor implements Function<Pair<HashMap<String, HashSet<Edg
 
             IndexNode root = Tx.getRoot();
             if(root.getState() == so && automaton.isFinal(childNode_i.getState())){
-              update_result_map(childNode_i.getStartTime(), new NodeKey(parentKey_i.first(), childKey_j));
+              update_result_map(childNode_i.getStartTime(), new NodeKey(root.getName(), childKey_j));
             }
             HashSet<Edge> snapshotEdgesFromChild = vertexEdgesSnapshot.get(childNode_i.getName());
             if (snapshotEdgesFromChild == null) {continue;}

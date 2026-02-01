@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Map.Entry;
@@ -54,7 +53,7 @@ public class StreamProcessor {
         private HashMap<Label, Long> totalQueryTimeNs;
         private HashMap<Label, Integer> queryCount;
         private int eventCounter = 0;
-        private final int SERIALIZE_EVERY = 100;
+        private final int SERIALIZE_EVERY = 1;
         private long startProcessingTimeNs; // throughput measurement
 
         public QueryProcessor(long windowSize, List<Pair<Label, Label>> queries) {
@@ -199,13 +198,10 @@ public class StreamProcessor {
                     // Remove entry and expire all
                     Entry<Long, Set<NodeKey>> timestamp_results = ALL_RS.pollFirstEntry(); 
                     for (NodeKey pathKey : timestamp_results.getValue()) {
+                        System.out.println(pathKey.toString());
                         String root = pathKey.pathSource();
                         SpanningTree Tx = queryDeltaPath.getTree(root);
                         node_lookup.remove(pathKey);
-                        if (Tx == null) {
-                            // Parent tree was expired/removed
-                            continue;  // safe: this path is no longer valid
-                        }
                         Tx.removeNode(pathKey.pathTargetKey());
                         if (Tx.getNodes().size() == 1){
                             queryDeltaPath.removeTree(root);
