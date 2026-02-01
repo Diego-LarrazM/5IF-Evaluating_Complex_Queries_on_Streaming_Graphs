@@ -15,6 +15,10 @@ import lombok.Data;
     this.indexPath = new HashMap<>();
   }
 
+  public boolean isEmpty(){
+    return this.indexPath.isEmpty();
+  }
+
   public void createTree(IndexNode rootNode) {
     this.indexPath.put(rootNode.getName(), new SpanningTree(rootNode));
   }
