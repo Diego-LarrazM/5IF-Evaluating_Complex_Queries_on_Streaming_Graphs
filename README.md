@@ -25,7 +25,8 @@ Url: https://ieeexplore.ieee.org/abstract/document/9835463/
 Xiangyang Gou, Xinyi Ye, Lei Zou & Jeffrey Xu Yu. “LM‑SRPQ: Efficiently Answering Regular Path Query in Streaming Graphs.” Proceedings of the VLDB Endowment, Vol. 17, No. 5, pp. 1047–1059, 2024. DOI: 10.14778/3641204.3641214. (Algorithm 1)
 Url: https://mod.wict.pku.edu.cn/docs/20240422170756302199.pdf 
 
-Windowing based on flink watermarking instead of a sliding window.
+
+Windowing based on flink watermarking instead of a sliding window. A sliding window would probably work better.
 
 ---
 
@@ -36,6 +37,32 @@ datasets/
 - sx-stackoverflow-a2q.txt
 - sx-stackoverflow-c2q.txt
 - sx-stackoverflow-c2a.txt
+
+## Launching:
+
+0. Remove debugs
+
+If debugging or any terminal information of advancement isn't necessary you can comment:
+- Every `out.collect(` in .../processors/StreamingProcessor.java (Both in processElement and onTimer lines 145 and 173).
+- The `.print();` in the stream pipeline, line 229
+
+Also for debugging purposes a timer is set between each event generation in `stack-overflow.py`. Furthermore and given there are +17M rows per dataset, an event limit has been set. Both can be commented or modified in the file.
+
+To finish, the `StreamProcessor` possesses a `SERIALIZE_EVERY` attribute that indicates every how many events passed do we serailize results and metrics into a file `project_dir/results/results_X.txt` (X being the number of events passed and averaged upon).
+  
+<br>
+  
+1. Launch the dataset feeder from a socket
+```bash
+...project_dir/$> python stack-overflow.py 8080
+```
+(The port can be changed but needs to do so too in Main.py of the project, when creating StreamProcessor)
+
+<br>
+
+2. Launch the java code from Main.py in `streamgraph_queries`
+
+<br>
 
 ## Optimizations:
 
