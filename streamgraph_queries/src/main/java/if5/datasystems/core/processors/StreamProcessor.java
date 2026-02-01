@@ -1,5 +1,12 @@
 package if5.datasystems.core.processors;
 
+import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.nio.file.Paths;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
@@ -9,6 +16,7 @@ import if5.datasystems.core.models.streamingGraph.Edge;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Iterator;
 
 import org.apache.flink.api.common.RuntimeExecutionMode;
@@ -20,7 +28,6 @@ import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 import if5.datasystems.core.models.aliases.Label;
 import if5.datasystems.core.models.aliases.Pair;
-import if5.datasystems.core.models.aliases.Triple;
 import if5.datasystems.core.models.aliases.Tuple4;
 import if5.datasystems.core.models.queries.IndexPath;
 
@@ -37,6 +44,13 @@ public class StreamProcessor {
         private HashMap<String, StreamingGraph> results;
         private SPath spathProcessor;
 
+        // Metrics
+        private HashMap<Label, Long> totalQueryTimeNs;
+        private HashMap<Label, Integer> queryCount;
+        private int eventCounter = 0;
+        private final int SERIALIZE_EVERY = 50;
+        private long startProcessingTimeNs; // throughput measurement
+
         public QueryProcessor(long windowSize, List<Pair<Label, Label>> queries) {
             this.WINDOW_SIZE = windowSize;
             this.queries = queries;
@@ -47,14 +61,18 @@ public class StreamProcessor {
             this.streamingGraph = new StreamingGraph();
             this.results = new HashMap<>();
             this.spathProcessor = new SPath();
+
+            this.totalQueryTimeNs = new HashMap<>();
+            this.queryCount = new HashMap<>();
+            this.startProcessingTimeNs = System.nanoTime();
         }
 
         @Override
         public void processElement(
             EdgeEventFormat edge_event, 
             Context context,
-            Collector<String> out) throws Exception {
-            // Processing of each event (Edge + timestamp + Watermark)
+            Collector<String> out
+        ) throws Exception {
 
             // Update State
             Edge edge = edge_event.edge;
@@ -64,6 +82,7 @@ public class StreamProcessor {
             this.streamingGraph.updateStreamingGraph(sgt);
             
             for (Pair<Label, Label> query : this.queries) {
+                long startTime = System.nanoTime();
                 StreamingGraph queryResult = spathProcessor.apply(
                     new Tuple4<>(
                         new IndexPath(),
@@ -72,14 +91,60 @@ public class StreamProcessor {
                         query.second()
                     )
                 );
+                long duration = System.nanoTime() - startTime;
+                // accumulate total time and count
+                totalQueryTimeNs.put(
+                    query.second(),
+                    totalQueryTimeNs.getOrDefault(query.second(), 0L) + duration
+                );
+                queryCount.put(
+                    query.second(),
+                    queryCount.getOrDefault(query.second(), 0) + 1
+                );
+
                 this.results.put(
                     query.second().l,
                     queryResult
                 );
+                
+            }
+
+            eventCounter++;
+
+            if (eventCounter % SERIALIZE_EVERY == 0) {
+                String fileName = "results_" + eventCounter + ".txt";
+                try (PrintWriter writer = new PrintWriter(new FileWriter(fileName))) {
+
+                    // --- write the results in human-readable form ---
+                    writer.println("=== RESULTS AT EVENT #" + eventCounter + " ===");
+                    writer.println(this.results.toString());  // assuming results.toString() is meaningful
+
+                    // --- write average time per query ---
+                    writer.println("\n=== QUERY TIME METRICS ===");
+                    for (Label label : totalQueryTimeNs.keySet()) {
+                        long totalNs = totalQueryTimeNs.get(label);
+                        int count = queryCount.getOrDefault(label, 1); // safety
+                        double avgMs = totalNs / 1_000_000.0 / count;
+
+                        writer.printf("Query %s avg time: %.3f ms over %d runs%n",
+                                label, avgMs, count);
+                    }
+                    
+                    writer.printf("\n=== PERFORMANCE METRICS ===\n");
+                    long nowNs = System.nanoTime();
+                    double throughput = SERIALIZE_EVERY / ((nowNs - startProcessingTimeNs) / 1_000_000_000.0); // events/sec
+                    writer.printf("Throughput: %.2f events/sec%n", throughput);
+                    startProcessingTimeNs = nowNs; // reset for next batch
+
+                    System.out.println("Saved human-readable results at " + fileName);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             // Downstream to output for printing
             out.collect(
-                "ADD    " + edge.getStartTime() + ", " + edge.getExpiricy()  +
+                "ADD    " + edge.toString() + ", ts:" + edge.getStartTime()   +
                 " | watermark=" +
                 context.timerService().currentWatermark()
             );
@@ -98,7 +163,7 @@ public class StreamProcessor {
                 StreamingGraphTuple tuple = iterator.next();
                 if (tuple.getExpiricy() <= timestamp) {
                     out.collect(
-                        "REMOVE " + tuple.getStartTime() + ", " + tuple.getExpiricy() +
+                        "REMOVE " + tuple.toString() + ", ts:" + tuple.getStartTime()  +
                         " | watermark=" +
                         context.timerService().currentWatermark()
                     );
@@ -117,20 +182,6 @@ public class StreamProcessor {
         this.queryProcessor = new QueryProcessor(window_size, queries);
 
         DataStream<String> socketStream = this.env.socketTextStream("localhost", stream_port);
-
-        // this.streamGraph =  
-                            // env.fromSource(
-                            //     FileSource.forRecordStreamFormat(
-                            //         new EdgeStreamFormat(), // Reads CSV to Edge
-                            //         new Path(stream_file_path)
-                            //     ).build()
-                            
-                                // WatermarkStrategy // Sets up time for expiration given edge start times and lateness available
-                                //     .<Edge>forBoundedOutOfOrderness(Duration.ofMillis(watermarkDelta))
-                                //     .withTimestampAssigner((edge, ts) -> edge.getStartTime())
-                                // ,
-                                // "CSV Test Source"
-                            // );
         socketStream
         .filter(s->(s != "" && s != null))
         .map(EdgeEventFormat::new)
@@ -141,23 +192,6 @@ public class StreamProcessor {
         .keyBy(edge -> 0)
         .process(this.queryProcessor)
         .print();
-        // .map(MyEvent::new).process(new ProcessFunction<MyEvent, String>() {
-        //     @Override
-        //     public void processElement(MyEvent event, Context ctx, Collector<String> out) {
-        //         out.collect(event.toString());
-        //     }
-        // }).print();
-        // this.streamGraph.process(new ProcessFunction<Edge, Edge>() {
-        //     @Override
-        //     public void processElement(Edge edge, Context ctx, Collector<Edge> out) {
-        //         System.out.println("EDGE: " + edge.getStartTime() + " | WM=" + ctx.timerService().currentWatermark());
-        //         out.collect(edge);
-        //     }
-        // });
-            //.assignTimestampsAndWatermarks(watermarkStrategy)
-            // .keyBy(edge -> 0)
-            // .process(new QueryProcessor(window_size))
-            // .print();
     }
 
     public void execute(String job_name) throws Exception {
