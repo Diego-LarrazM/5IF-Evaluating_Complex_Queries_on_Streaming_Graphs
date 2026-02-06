@@ -151,10 +151,10 @@ public class StreamProcessor {
                 }
             }
             // Downstream to output for printing
-            /*out.collect(
+            out.collect(
                 "ADD    " + edge.toString() + ", ts:" + edge.getStartTime()   + ", exp:" + edge.getExpiricy() +
                 " | maxT=" + this.maxTimestampSeen
-            );*/
+            );
         }
 
         public void expire(
@@ -174,10 +174,10 @@ public class StreamProcessor {
                     this.vertexEdges.get(src).remove(e);
 
                     // Remove from snapshot
-                    /*out.collect(
+                    out.collect(
                         "REMOVE " + tuple.toString() + ", exp:" + tuple.getExpiricy()  +
                         " | maxT=" + this.maxTimestampSeen
-                    );*/
+                    );
                     iterator.remove();
                 } else {
                     // Arrêter l'itération dès qu'un tuple non expiré est trouvé
@@ -226,8 +226,8 @@ public class StreamProcessor {
         .filter(s->(s != "" && s != null))
         .map(EdgeEventFormat::new)
         .keyBy(edge -> 0)
-        .process(this.queryProcessor);
-        //.print(); // for debugging
+        .process(this.queryProcessor)//;
+        .print(); // for debugging
     }
 
     public void execute(String job_name) throws Exception {
