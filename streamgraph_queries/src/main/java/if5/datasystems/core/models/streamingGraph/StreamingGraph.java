@@ -35,31 +35,32 @@ import lombok.Data;
   }
 
   public void updateStreamingGraph(StreamingGraphTuple sgt) {
+    // Check for an existing tuple that matches sgt
     for (Iterator<StreamingGraphTuple> iterator = this.tuples.iterator(); iterator.hasNext(); ) {
         StreamingGraphTuple existingTuple = iterator.next();
-
         if (existingTuple.equals(sgt)) {
+            // Merge with existing tuple
             sgt = sgt.mergeTuple(existingTuple);
-            iterator.remove(); // Supprimer temporairement pour réinsérer à la bonne position
+            iterator.remove(); // Remove old tuple before reinserting
             break;
         }
     }
-    // Réinsérer le tuple fusionné ou insérer le nouveau tuple à la bonne position
+
+    // Insert sgt in ascending order by expiration
     boolean inserted = false;
-    int i  = this.tuples.size();
-    while(i-- >0) {
+    for (int i = 0; i < this.tuples.size(); i++) {
         StreamingGraphTuple currentTuple = this.tuples.get(i);
-        // Insérer dans la bonne position en fonction de la date d'expiration
         if (sgt.getRepr().getExpiricy() < currentTuple.getRepr().getExpiricy()) {
-            this.tuples.add(i, sgt);
+            this.tuples.add(i, sgt); // Insert before first tuple with larger expiration
             inserted = true;
             break;
         }
     }
-    // Si non inséré, ajouter à la fin
+
+    // If it is the largest expiration, add at the end
     if (!inserted) {
         this.tuples.add(sgt);
     }
-}
+ }
 
 }

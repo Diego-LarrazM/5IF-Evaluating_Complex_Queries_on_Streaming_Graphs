@@ -9,7 +9,6 @@ import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 
 import if5.datasystems.core.models.streamingGraph.Edge;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,7 +19,6 @@ import java.util.Map.Entry;
 import java.util.Iterator;
 
 import org.apache.flink.api.common.RuntimeExecutionMode;
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.util.Collector;
 
@@ -40,6 +38,8 @@ public class StreamProcessor {
 
     class QueryProcessor extends KeyedProcessFunction<Integer, EdgeEventFormat, String> {
         private final long WINDOW_SIZE;
+        private final long SLIDE;
+        private long maxTimestampSeen;
         private StreamingGraph currentSnapshotGraph;
         private List<SPathProcessor> queryProcessors;
         private HashMap<String, HashSet<Edge>> vertexEdges; // Per Vertex (v), all current existing edges where v = e.src, for efficiency in spath
@@ -49,12 +49,15 @@ public class StreamProcessor {
         private HashMap<Label, Long> totalQueryTimeNs;
         private HashMap<Label, Integer> queryCount;
         private int eventCounter = 0;
-        private final int SERIALIZE_EVERY = 1000;
+        private int serializerCounter = 0;
+        private final int SERIALIZE_EVERY = 200;
         private long startProcessingTimeNs; // throughput measurement
 
-        public QueryProcessor(long windowSize, List<Pair<Label, Label>> queries) {
+        public QueryProcessor(long windowSize, long slide, List<Pair<Label, Label>> queries) {
             this.WINDOW_SIZE = windowSize;
+            this.SLIDE = slide;
             this.queries = queries;
+            this.maxTimestampSeen = Long.MIN_VALUE;
         }
 
         @Override
@@ -80,12 +83,14 @@ public class StreamProcessor {
 
             // Update State
             Edge edge = edge_event.edge;
-            edge.setExpiricy(edge_event.timestamp + WINDOW_SIZE);
-            StreamingGraphTuple sgt = new StreamingGraphTuple(edge);
+            this.maxTimestampSeen = Math.max(this.maxTimestampSeen, edge_event.timestamp); // iterative time advancement
+            StreamingGraphTuple sgt = AlgebraFunctions.getWindowedTuple(edge, edge_event.timestamp, WINDOW_SIZE, SLIDE, maxTimestampSeen);
+            if (sgt == null) return;
             
             // Update snapshot
             this.currentSnapshotGraph.updateStreamingGraph(sgt);
             this.vertexEdges.computeIfAbsent(edge.getSource(), k -> new HashSet<>()).add(edge);
+            expire(out);
             
             for (SPathProcessor spathProcessor : this.queryProcessors) {
                 long startTime = System.nanoTime();
@@ -106,10 +111,14 @@ public class StreamProcessor {
             }
 
             eventCounter++;
+            serializerCounter++;
 
-            if (eventCounter % SERIALIZE_EVERY == 0) { // Saves metrics and results to parent_dir/results/
+            if (serializerCounter == SERIALIZE_EVERY) { // Saves metrics and results to parent_dir/results/
+                serializerCounter = 0; // restart counter
                 String fileName = "./results/results_" + eventCounter + ".txt";
                 try (PrintWriter writer = new PrintWriter(new FileWriter(fileName))) {
+
+                    writer.println("SnapshotSize: " + currentSnapshotGraph.getTuples().size() + "\n");
 
                     // --- write the results in human-readable form ---
                     writer.println("=== RESULTS AT EVENT #" + eventCounter + " ===");
@@ -143,26 +152,21 @@ public class StreamProcessor {
             }
             // Downstream to output for printing
             out.collect(
-                "ADD    " + edge.toString() + ", ts:" + edge.getStartTime()   +
-                " | watermark=" +
-                context.timerService().currentWatermark()
+                "ADD    " + edge.toString() + ", ts:" + edge.getStartTime()   + ", exp:" + edge.getExpiricy() +
+                " | maxT=" + this.maxTimestampSeen
             );
-
-            // Register expiration timer to call onTimer when currentWatermark >= expirationTimer
-            context.timerService().registerEventTimeTimer(edge.getExpiricy());
         }
 
-        @Override
-        public void onTimer(
-            long timestamp,
-            OnTimerContext context,
+        public void expire(
             Collector<String> out
         ) throws Exception 
         {
+            long countExpired = 0;
             Iterator<StreamingGraphTuple> iterator = this.currentSnapshotGraph.getTuples().iterator();
             while (iterator.hasNext()) {
                 StreamingGraphTuple tuple = iterator.next();
-                if (tuple.getExpiricy() <= timestamp) {
+                if (tuple.getExpiricy() <= this.maxTimestampSeen) {
+                    countExpired++;
                     Edge e = tuple.getRepr();
                     String src = e.getSource();
 
@@ -171,9 +175,8 @@ public class StreamProcessor {
 
                     // Remove from snapshot
                     out.collect(
-                        "REMOVE " + tuple.toString() + ", ts:" + tuple.getStartTime()  +
-                        " | watermark=" +
-                        context.timerService().currentWatermark()
+                        "REMOVE " + tuple.toString() + ", exp:" + tuple.getExpiricy()  +
+                        " | maxT=" + this.maxTimestampSeen
                     );
                     iterator.remove();
                 } else {
@@ -181,20 +184,22 @@ public class StreamProcessor {
                     break;
                 }
             }
+            if (countExpired == 0) return; // No expirations
+
             // Update from indexPath
             for (SPathProcessor spathprocessor : this.queryProcessors) {
-                // Expire all path final targets from smallest ts to largest ts < (current_ts - WINDOW_SIZE)
+                // Expire all path final targets from smallest exp to largest exp <= (current_ts), exp excluded in validity interval
                 // We only expire path target node given we suppose childNode.ts <= parentNode.ts, thus the parents will be eliminated along or will be eliminated later on.
                 TreeMap<Long, Set<NodeKey>> ALL_RS = spathprocessor.getResultTimestamps();
                 HashMap<NodeKey, Long> node_lookup = spathprocessor.getLookup();
                 IndexPath queryDeltaPath = spathprocessor.getDeltaPath();
                 Long result_ts = ALL_RS.isEmpty() ? null : ALL_RS.firstKey();
-                while (result_ts != null && result_ts < timestamp - WINDOW_SIZE) {
+                while (result_ts != null && AlgebraFunctions.wscanExp(result_ts, WINDOW_SIZE, SLIDE) <= this.maxTimestampSeen) {
                     // Remove entry and expire all
                     Entry<Long, Set<NodeKey>> timestamp_results = ALL_RS.pollFirstEntry();
                     for (NodeKey pathKey : timestamp_results.getValue()) {
                         String root = pathKey.pathSource();
-                        //System.out.println("EXPIRE PATH " + root + "--*-->" + pathKey.pathTargetKey().toString()); // To un-comment for debugging
+                        // System.out.println("EXPIRE PATH " + root + "--*-->" + pathKey.pathTargetKey().toString()); // To un-comment for debugging
                         SpanningTree Tx = queryDeltaPath.getTree(root);
                         node_lookup.remove(pathKey);
                         Tx.removeNode(pathKey.pathTargetKey());
@@ -209,21 +214,17 @@ public class StreamProcessor {
 
         
     }
-    public StreamProcessor(long window_size, int watermarkDelta, List<Pair<Label, Label>> queries, int stream_port) {
+    public StreamProcessor(long windowSize, long slide, List<Pair<Label, Label>> queries, int streamPort) {
         this.env = StreamExecutionEnvironment.getExecutionEnvironment();
         this.env.setParallelism(1);
         this.env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
-        this.queryProcessor = new QueryProcessor(window_size, queries);
+        if (slide <= 0) slide = 1; // Default slide
+        this.queryProcessor = new QueryProcessor(windowSize,  slide, queries);
 
-        DataStream<String> socketStream = this.env.socketTextStream("localhost", stream_port);
+        DataStream<String> socketStream = this.env.socketTextStream("localhost", streamPort);
         socketStream
         .filter(s->(s != "" && s != null))
         .map(EdgeEventFormat::new)
-        .assignTimestampsAndWatermarks(
-            WatermarkStrategy //Sets up time for expiration given edge start times and lateness available
-            .<EdgeEventFormat>forBoundedOutOfOrderness(Duration.ofMillis(watermarkDelta))
-            //.<EdgeEventFormat>forMonotonousTimestamps()
-            .withTimestampAssigner((event, ts) -> event.timestamp))
         .keyBy(edge -> 0)
         .process(this.queryProcessor)//;
         .print(); // for debugging

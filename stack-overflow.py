@@ -24,7 +24,7 @@ def start_server(port):
             "c2a": "./datasets/sx-stackoverflow-c2a.txt"
         }
         
-        maxLines = 10000
+        maxLines = 15000
         lines = 0
 
         # Open all three files

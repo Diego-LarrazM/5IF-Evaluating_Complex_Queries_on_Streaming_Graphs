@@ -12,6 +12,17 @@ import if5.datasystems.core.models.streamingGraph.StreamingGraph;
 import if5.datasystems.core.models.streamingGraph.StreamingGraphTuple;
 
 public class AlgebraFunctions {
+    public static long wscanExp(long t, long windowSize, long slide) {
+        return (t/slide)*slide + windowSize;
+    }
+
+    public static StreamingGraphTuple getWindowedTuple(Edge edge, long t, long windowSize, long slide, long maxTimestampSeen){
+        long exp = wscanExp(t,windowSize,slide);
+        if (exp <= maxTimestampSeen) return null;
+        edge.setExpiricy(exp);
+        return new StreamingGraphTuple(edge);
+    }
+
     public static StreamingGraph Snapshot(StreamingGraph S, long snapTime){
         StreamingGraph resultGraph = new StreamingGraph();
         
@@ -51,7 +62,6 @@ public class AlgebraFunctions {
         
         if (currentNode==null) return resultGraph;
         ArrayList<Edge> edges = new ArrayList<>();
-        Label currentLabel = null;
 
         while (!currentNode.equals(T.getRoot()))
         {
