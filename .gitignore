@@ -23,3 +23,6 @@
 !**/datasets/integration_test.csv
 
 !**/results/integration_test_expected_result.txt
+!**/results/SnapshotSize_plot.png
+!**/results/Throughput_plot.png
+!**/results/avger.py

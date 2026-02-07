@@ -99,6 +99,13 @@ Now the important point is we ONLY have to expire the pathTargetKey node and not
 
 Simple O(1) per remove, given spanning trees are HashMaps of NodeKeys.
 
+## Benchmark:
+
+| SnapshotSize vs WindowSize| Throughput vs WindowSize  |
+|--------------------------|---------------------------|
+| ![SnapshotSize Plot](results/SnapshotSize_plot.png)| ![Throughput Plot](results/Throughput_plot.png)  |
+
+
 ## License
 
 This repository was developed as part of a college reproducibility project at INSA Lyon. 
