@@ -112,6 +112,8 @@ Simple O(1) per remove, given spanning trees are HashMaps of NodeKeys.
 |-------------------|-------------------|-------------------|
 |  0.004 ms         |   0.040 ms        |  0.059 ms         |
 
+
+Query runtime measures how long Spath spanning trees (and thus query results) take to update upon receiving a new event.
 Most of the time is probably lost in either snapshot/structure ordering upon a new event incoming or expiry (less probable since not that many expire at W30).
 There's also the extra snapshot overlook for coalescing sgt duplicates at different time validities that may not be of use for a certain dataset.
 However, more checks need to be done to determine where the latency comes from.
