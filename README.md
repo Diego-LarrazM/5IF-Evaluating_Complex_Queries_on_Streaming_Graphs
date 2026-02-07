@@ -85,7 +85,7 @@ for (Edge e: snapshotEdgesFromChild) {
 
 ### 3. IndexPath Expiration
 
-Upon expiring an edge in the snapshot StreamingGraph or `vertexEdges` we need to check if an index path is no longer available.
+Upon expiring an edge in the snapshot StreamingGraph or `vertexEdges`, we need to check if an index path is no longer available.
 
 This is done very easily with two structures:
 ```java
@@ -99,11 +99,22 @@ Now the important point is we ONLY have to expire the pathTargetKey node and not
 
 Simple O(1) per remove, given spanning trees are HashMaps of NodeKeys.
 
-## Benchmark:
+## Benchmark: (StackOverflow dataset)
 
 | SnapshotSize vs WindowSize| Throughput vs WindowSize  |
 |--------------------------|---------------------------|
 | ![SnapshotSize Plot](results/SnapshotSize_plot.png)| ![Throughput Plot](results/Throughput_plot.png)  |
+
+| Query Average Runtime over 5000 runs at W30               |
+|-----------------------------------------------------------|
+
+| Q1                | Q2                | Q3                |
+|-------------------|-------------------|-------------------|
+|  0.004 ms         |   0.040 ms        |  0.059 ms         |
+
+Most of the time is probably lost in either snapshot/structure ordering upon a new event incoming or expiry (less probable since not that many expire at W30).
+There's also the extra snapshot overlook for coalescing sgt duplicates at different time validities that may not be of use for a certain dataset.
+However, more checks need to be done to determine where the latency comes from.
 
 
 ## License
